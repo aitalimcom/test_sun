@@ -17,12 +17,19 @@ const { title, activePage = '' } = Astro.props;
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
   <style>
     body { font-family: 'Inter', system-ui, sans-serif; background: #f8f9fa; }
-    .sidebar { width: 260px; min-height: 100vh; background: #2F5233; color: #fff; position: fixed; top: 0; left: 0; z-index: 1000; transition: transform 0.3s; }
+    .sidebar { width: 260px; min-height: 100vh; background: #2F5233; color: #fff; position: fixed; top: 0; left: 0; z-index: 1000; transition: transform 0.3s; overflow-y: auto; }
     .sidebar-brand { padding: 1rem 1.25rem; font-size: 1.25rem; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.1); }
     .sidebar-nav { list-style: none; padding: 0; margin: 0; }
-    .sidebar-nav li a { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.25rem; color: rgba(255,255,255,0.8); text-decoration: none; transition: all 0.2s; }
+    .sidebar-nav li a { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 1.25rem; color: rgba(255,255,255,0.8); text-decoration: none; transition: all 0.2s; font-size: 0.9rem; }
     .sidebar-nav li a:hover, .sidebar-nav li a.active { background: rgba(255,255,255,0.1); color: #fff; }
     .sidebar-nav li a i { width: 20px; text-align: center; }
+    .sidebar-section { padding: 0.5rem 1.25rem 0.25rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,0.4); }
+    .sidebar-accordion .accordion-button { background: transparent; color: rgba(255,255,255,0.8); border: none; padding: 0.65rem 1.25rem; font-size: 0.9rem; box-shadow: none; }
+    .sidebar-accordion .accordion-button:not(.collapsed) { color: #fff; background: rgba(255,255,255,0.05); }
+    .sidebar-accordion .accordion-button::after { filter: invert(1); opacity: 0.5; }
+    .sidebar-accordion .accordion-body { padding: 0 0 0.25rem; }
+    .sidebar-accordion .accordion-body a { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 1.25rem 0.5rem 2.5rem; color: rgba(255,255,255,0.7); text-decoration: none; transition: all 0.2s; font-size: 0.85rem; }
+    .sidebar-accordion .accordion-body a:hover, .sidebar-accordion .accordion-body a.active { color: #fff; background: rgba(255,255,255,0.05); }
     .main-content { margin-left: 260px; padding-top: 60px; min-height: 100vh; }
     .topbar { height: 60px; background: #fff; border-bottom: 1px solid #dee2e6; display: flex; align-items: center; padding: 0 1.5rem; position: fixed; top: 0; right: 0; left: 260px; z-index: 999; }
     .stat-card { border: none; border-radius: 0.75rem; transition: transform 0.2s; }
@@ -39,9 +46,48 @@ const { title, activePage = '' } = Astro.props;
     <nav class="mt-3">
       <ul class="sidebar-nav">
         <li><a href="/" class={activePage === 'dashboard' ? 'active' : ''}><i class="bi bi-grid-1x2"></i> ड्यासबोर्ड</a></li>
-        <li><a href="/farmer" class={activePage === 'farmer' ? 'active' : ''}><i class="bi bi-person-workspace"></i> किसान व्यवस्थापन</a></li>
-        <li><a href="/farmer/register" class={activePage === 'farmer-register' ? 'active' : ''}><i class="bi bi-person-plus"></i> किसान दर्ता</a></li>
-        <li><a href="/farmer/records" class={activePage === 'farmer-records' ? 'active' : ''}><i class="bi bi-journal-text"></i> अभिलेखहरू</a></li>
+      </ul>
+
+      <div class="sidebar-section">किसान व्यवस्थापन</div>
+      <div class="sidebar-accordion accordion" id="farmerAccordion">
+        <div class="accordion-item bg-transparent border-0">
+          <h2 class="accordion-header">
+            <button class="accordion-button py-2" type="button" data-bs-toggle="collapse" data-bs-target="#farmerMenu"
+                    aria-expanded={activePage.startsWith('farmer') || activePage.startsWith('iot') ? 'true' : 'false'}>
+              <i class="bi bi-person-workspace me-2"></i> किसान
+            </button>
+          </h2>
+          <div id="farmerMenu" class={`accordion-collapse collapse ${activePage.startsWith('farmer') || activePage.startsWith('iot') ? 'show' : ''}`} data-bs-parent="#farmerAccordion">
+            <div class="accordion-body">
+              <a href="/farmer" class={activePage === 'farmer' ? 'active' : ''}><i class="bi bi-people"></i> किसान सूची</a>
+              <a href="/farmer/register" class={activePage === 'farmer-register' ? 'active' : ''}><i class="bi bi-person-plus"></i> दर्ता</a>
+              <a href="/farmer/records" class={activePage === 'farmer-records' ? 'active' : ''}><i class="bi bi-journal-text"></i> अभिलेख</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">IoT मोनिटरिङ</div>
+      <div class="sidebar-accordion accordion" id="iotAccordion">
+        <div class="accordion-item bg-transparent border-0">
+          <h2 class="accordion-header">
+            <button class="accordion-button py-2" type="button" data-bs-toggle="collapse" data-bs-target="#iotMenu"
+                    aria-expanded={activePage.startsWith('iot') ? 'true' : 'false'}>
+              <i class="bi bi-router me-2"></i> IoT स्टेसन
+            </button>
+          </h2>
+          <div id="iotMenu" class={`accordion-collapse collapse ${activePage.startsWith('iot') ? 'show' : ''}`} data-bs-parent="#iotAccordion">
+            <div class="accordion-body">
+              <a href="/iot" class={activePage === 'iot' ? 'active' : ''}><i class="bi bi-grid-1x2"></i> ड्यासबोर्ड</a>
+              <a href="/iot" class="iot-devices-link"><i class="bi bi-router"></i> उपकरणहरू</a>
+              <a href="/iot#cron" class="iot-cron-link"><i class="bi bi-clock-history"></i> क्रन एजेन्ट</a>
+              <a href="/iot#alerts" class="iot-alerts-link"><i class="bi bi-exclamation-triangle"></i> सतर्कता</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <ul class="sidebar-nav mt-2">
         <li><a href="/schemes" class={activePage === 'schemes' ? 'active' : ''}><i class="bi bi-bank"></i> योजनाहरू</a></li>
         <li><a href="/reports" class={activePage === 'reports' ? 'active' : ''}><i class="bi bi-bar-chart-line"></i> प्रतिवेदन</a></li>
         <li><a href="/settings" class={activePage === 'settings' ? 'active' : ''}><i class="bi bi-gear"></i> सेटिङ</a></li>

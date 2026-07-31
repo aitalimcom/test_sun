@@ -1,0 +1,436 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+<AdminLayout title="उपकरण विवरण" activePage="iot">
+  <div class="mb-4">
+    <a href="/iot" class="text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>फर्कनुहोस्</a>
+    <div class="d-flex justify-content-between align-items-center mt-2">
+      <div>
+        <h5 class="mb-1" id="device-name">Loading...</h5>
+        <p class="text-muted mb-0 small" id="device-meta"></p>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-success btn-sm" onclick="syncDevice()">
+          <i class="bi bi-arrow-clockwise me-1"></i> Sync
+        </button>
+        <button class="btn btn-outline-danger btn-sm" onclick="deleteDevice()">
+          <i class="bi bi-trash me-1"></i> Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column -->
+    <div class="col-lg-8">
+      <!-- Sensor Gauges -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h6 class="mb-0"><i class="bi bi-speedometer2 me-2"></i>वास्तविक समय डेटा</h6>
+          <small class="text-muted" id="last-sync">-</small>
+        </div>
+        <div class="card-body">
+          <div class="row g-3" id="sensor-gauges">
+            <div class="col-12 text-center py-3"><div class="spinner-border text-success"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actuator Controls -->
+      <div class="card shadow-sm mb-4" id="actuator-panel" style="display:none">
+        <div class="card-header bg-white">
+          <h6 class="mb-0"><i class="bi bi-sliders me-2"></i>एक्चुएटर नियन्त्रण</h6>
+        </div>
+        <div class="card-body" id="actuator-controls"></div>
+      </div>
+
+      <!-- Telemetry History -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+          <h6 class="mb-0"><i class="bi bi-graph-up me-2"></i>टेलिमेट्री इतिहास</h6>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover table-sm mb-0">
+              <thead class="table-light">
+                <tr id="telemetry-header"><th>समय</th></tr>
+              </thead>
+              <tbody id="telemetry-body">
+                <tr><td colspan="20" class="text-center py-3 text-muted">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ESP32 Code -->
+      <div class="card shadow-sm mb-4" id="esp32-panel" style="display:none">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h6 class="mb-0"><i class="bi bi-code-slash me-2"></i>ESP32 कोड</h6>
+          <button class="btn btn-sm btn-outline-secondary" onclick="copyCode()">
+            <i class="bi bi-clipboard me-1"></i>Copy
+          </button>
+        </div>
+        <div class="card-body">
+          <pre class="bg-dark text-success p-3 rounded small" style="max-height:300px;overflow:auto"><code id="esp32-code"></code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-lg-4">
+      <!-- Device Info -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-body text-center">
+          <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex p-4 mb-3">
+            <i class="bi bi-router text-success fs-1"></i>
+          </div>
+          <h5 class="mb-1" id="info-name">-</h5>
+          <p class="text-muted small mb-3" id="info-type">-</p>
+          <div class="row g-2 text-start">
+            <div class="col-6"><small class="text-muted d-block">स्थान</small><span id="info-location">-</span></div>
+            <div class="col-6"><small class="text-muted d-block">स्ट्याटस</small><span id="info-status">-</span></div>
+            <div class="col-6"><small class="text-muted d-block">ब्याट्री</small><span id="info-battery">-</span></div>
+            <div class="col-6"><small class="text-muted d-block">ID</small><small id="info-id">-</small></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Schedules -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h6 class="mb-0"><i class="bi bi-calendar-check me-2"></i>समयतालिका</h6>
+          <button class="btn btn-sm btn-outline-success" onclick="showAddSchedule()">
+            <i class="bi bi-plus"></i>
+          </button>
+        </div>
+        <div class="card-body p-0" id="schedules-list">
+          <div class="text-center py-3 small text-muted">No schedules</div>
+        </div>
+      </div>
+
+      <!-- Control Chat (Agent 2) -->
+      <div class="card shadow-sm">
+        <div class="card-header bg-success text-white">
+          <h6 class="mb-0"><i class="bi bi-robot me-2"></i>नियन्त्रण एजेन्ट</h6>
+        </div>
+        <div class="card-body">
+          <div id="control-messages" style="height:250px;overflow-y:auto;" class="mb-3">
+            <div class="alert alert-info small mb-0">
+              उपकरण नियन्त्रण गर्न सोध्नुहोस्। उदाहरण: "पम्प चालु गर ३० मिनेटका लागि"
+            </div>
+          </div>
+          <div class="input-group">
+            <input type="text" class="form-control form-control-sm" id="control-input"
+                   placeholder="नियन्त्रण आदेश लेख्नुहोस्..."
+                   onkeydown="if(event.key==='Enter')sendControlChat()" />
+            <button class="btn btn-success btn-sm" onclick="sendControlChat()">
+              <i class="bi bi-send"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Schedule Modal -->
+  <div class="modal fade" id="scheduleModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h6 class="modal-title">समयतालिका थप्नुहोस्</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small">एक्शन</label>
+            <select class="form-select form-select-sm" id="sch-action">
+              <option value="start_pump">पम्प चालु</option>
+              <option value="stop_pump">पम्प बन्द</option>
+              <option value="light_on">बत्ती चालु</option>
+              <option value="light_off">बत्ती बन्द</option>
+              <option value="fan_on">पंखा चालु</option>
+              <option value="fan_off">पंखा बन्द</option>
+              <option value="valve_open">भल्भ खोल्नुहोस्</option>
+              <option value="valve_close">भल्भ बन्द</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small">CRON Expression</label>
+            <input type="text" class="form-control form-control-sm" id="sch-cron" value="0 6 * * *" />
+            <small class="text-muted">Example: "0 6 * * *" = Daily at 6am</small>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small">Duration (minutes, if applicable)</label>
+            <input type="number" class="form-control form-control-sm" id="sch-duration" value="30" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-sm btn-success" onclick="addSchedule()">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    const deviceId = window.location.pathname.split('/iot/')[1]?.split('?')[0] || 'weather-001';
+    const API = '/api/iot';
+    let controlChatHistory = [];
+    let deviceData = null;
+
+    async function loadDevice() {
+      try {
+        const resp = await fetch(`${API}/devices/${deviceId}`);
+        if (!resp.ok) throw new Error('Device not found');
+        const data = await resp.json();
+        deviceData = data.device;
+        renderDeviceInfo(deviceData);
+        await loadTelemetry();
+        await loadSchedules();
+      } catch (e) {
+        document.getElementById('device-name').textContent = 'Device not found';
+        console.error(e);
+      }
+    }
+
+    function renderDeviceInfo(d) {
+      document.getElementById('device-name').textContent = d.name;
+      document.getElementById('device-meta').textContent = `${d.device_type} — ${d.location}`;
+      document.getElementById('info-name').textContent = d.name;
+      document.getElementById('info-type').textContent = d.device_type;
+      document.getElementById('info-location').textContent = d.location;
+      document.getElementById('info-status').innerHTML = `<span class="badge bg-${d.status === 'active' ? 'success' : 'secondary'}">${d.status}</span>`;
+      document.getElementById('info-battery').textContent = `${d.battery}%`;
+      document.getElementById('info-id').textContent = d.device_id;
+      renderSensorGauges(d, d.latest);
+      renderActuatorControls(d);
+    }
+
+    function renderSensorGauges(d, latest) {
+      const sensors = d.sensors || [];
+      if (!sensors.length) {
+        document.getElementById('sensor-gauges').innerHTML = '<p class="text-muted">No sensors</p>';
+        return;
+      }
+      const sensorInfo = {
+        temperature: { icon: 'bi-thermometer-half', color: 'danger', label: 'Temperature', unit: '°C' },
+        humidity: { icon: 'bi-droplet', color: 'primary', label: 'Humidity', unit: '%' },
+        co2: { icon: 'bi-cloud', color: 'secondary', label: 'CO2', unit: 'ppm' },
+        moisture: { icon: 'bi-moisture', color: 'success', label: 'Moisture', unit: '%' },
+        ph: { icon: 'bi-droplet-half', color: 'info', label: 'pH', unit: '' },
+        light: { icon: 'bi-brightness-high', color: 'warning', label: 'Light', unit: 'lux' },
+        pressure: { icon: 'bi-cloud-hail', color: 'dark', label: 'Pressure', unit: 'hPa' },
+        rainfall: { icon: 'bi-cloud-rain', color: 'info', label: 'Rainfall', unit: 'mm' },
+      };
+      document.getElementById('sensor-gauges').innerHTML = sensors.map(s => {
+        const info = sensorInfo[s] || { icon: 'bi-cpu', color: 'secondary', label: s, unit: '' };
+        const val = latest && latest[s] !== undefined ? latest[s] : '--';
+        return `
+          <div class="col-md-4 col-6">
+            <div class="text-center p-3 bg-light rounded">
+              <i class="bi ${info.icon} text-${info.color} fs-3"></i>
+              <h4 class="mb-0 mt-1">${val}</h4>
+              <small class="text-muted">${info.label} (${info.unit})</small>
+            </div>
+          </div>`;
+      }).join('');
+      if (latest && latest.timestamp) {
+        document.getElementById('last-sync').textContent = 'Synced: ' + new Date(latest.timestamp).toLocaleString();
+      }
+    }
+
+    function renderActuatorControls(d) {
+      const actuators = d.actuators || [];
+      if (!actuators.length) {
+        document.getElementById('actuator-panel').style.display = 'none';
+        return;
+      }
+      document.getElementById('actuator-panel').style.display = 'block';
+      const actInfo = {
+        pump: { icon: 'bi-moisture', label: 'Pump', type: 'toggle' },
+        ac: { icon: 'bi-thermometer-snow', label: 'AC/Cooler', type: 'range', min: 15, max: 40 },
+        light: { icon: 'bi-lightbulb', label: 'Light', type: 'toggle' },
+        fan: { icon: 'bi-fan', label: 'Fan', type: 'toggle' },
+        valve: { icon: 'bi-valve', label: 'Valve', type: 'toggle' },
+        heater: { icon: 'bi-fire', label: 'Heater', type: 'range', min: 15, max: 45 },
+      };
+      document.getElementById('actuator-controls').innerHTML = '<div class="row g-3">' + actuators.map(a => {
+        const info = actInfo[a] || { icon: 'bi-cpu', label: a, type: 'toggle' };
+        if (info.type === 'toggle') {
+          return `
+            <div class="col-6">
+              <div class="d-flex align-items-center justify-content-between p-2 bg-light rounded">
+                <span><i class="bi ${info.icon} me-2"></i>${info.label}</span>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" onchange="toggleActuator('${a}', this.checked)" />
+                </div>
+              </div>
+            </div>`;
+        } else {
+          return `
+            <div class="col-12">
+              <label class="form-label small">${info.label} (${info.min}-${info.max}°C)</label>
+              <input type="range" class="form-range" min="${info.min}" max="${info.max}" value="25"
+                     onchange="setActuatorValue('${a}', this.value)" />
+            </div>`;
+        }
+      }).join('') + '</div>';
+    }
+
+    async function toggleActuator(actuator, on) {
+      const action = on ? `${actuator}_on` : `${actuator}_off`;
+      await fetch(`${API}/device/${deviceId}/action`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ device_id: deviceId, action, params: {} }),
+      });
+    }
+
+    async function setActuatorValue(actuator, value) {
+      const action = actuator === 'ac' ? 'set_ac_temp' : actuator === 'heater' ? 'set_heater_temp' : `${actuator}_set`;
+      await fetch(`${API}/device/${deviceId}/action`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ device_id: deviceId, action, params: { temperature: parseFloat(value) } }),
+      });
+    }
+
+    async function loadTelemetry() {
+      try {
+        const resp = await fetch(`${API}/device/${deviceId}/telemetry?limit=20`);
+        const data = await resp.json();
+        renderTelemetry(data.telemetry || [], deviceData);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderTelemetry(rows, d) {
+      if (!rows.length) {
+        document.getElementById('telemetry-header').innerHTML = '<th>Timestamp</th><th>No data</th>';
+        document.getElementById('telemetry-body').innerHTML = '<tr><td colspan="20" class="text-center py-3 text-muted">No telemetry data. Click Sync to generate.</td></tr>';
+        return;
+      }
+      const keys = Object.keys(rows[0]).filter(k => k !== 'timestamp');
+      document.getElementById('telemetry-header').innerHTML = '<th>Timestamp</th>' + keys.map(k => `<th>${k}</th>`).join('');
+      document.getElementById('telemetry-body').innerHTML = rows.slice().reverse().map(r => {
+        return `<tr><td><small>${r.timestamp ? new Date(r.timestamp).toLocaleTimeString() : '-'}</small></td>` +
+          keys.map(k => `<td>${r[k] !== undefined ? r[k] : '-'}</td>`).join('') + '</tr>';
+      }).join('');
+    }
+
+    async function syncDevice() {
+      try {
+        const resp = await fetch(`${API}/device/${deviceId}/sync`, { method: 'POST' });
+        const data = await resp.json();
+        await loadDevice();
+        alert('Synced: ' + JSON.stringify(data.data));
+      } catch (e) {
+        alert('Sync failed: ' + e.message);
+      }
+    }
+
+    async function deleteDevice() {
+      if (!confirm('Delete this device?')) return;
+      await fetch(`${API}/devices/${deviceId}`, { method: 'DELETE' });
+      window.location = '/iot';
+    }
+
+    // ── Control Chat ──
+    async function sendControlChat() {
+      const input = document.getElementById('control-input');
+      const msg = input.value.trim();
+      if (!msg) return;
+      input.value = '';
+
+      const el = document.getElementById('control-messages');
+      el.innerHTML += `<div class="text-end mb-2"><span class="badge bg-success">${msg}</span></div>`;
+      el.innerHTML += `<div class="mb-2" id="ctrl-loading"><div class="spinner-border spinner-border-sm text-muted"></div></div>`;
+
+      controlChatHistory.push({ role: 'user', content: msg });
+
+      try {
+        const resp = await fetch(`${API}/chat/control/${deviceId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: msg, history: controlChatHistory.slice(-10) }),
+        });
+        const result = await resp.json();
+        document.getElementById('ctrl-loading')?.remove();
+
+        controlChatHistory.push({ role: 'assistant', content: result.reply || '' });
+        el.innerHTML += `<div class="mb-2"><span class="badge bg-light text-dark text-start">${result.reply || 'Done!'}</span></div>`;
+        el.scrollTop = el.scrollHeight;
+      } catch (e) {
+        document.getElementById('ctrl-loading')?.remove();
+        el.innerHTML += `<div class="mb-2"><span class="badge bg-danger">Error</span></div>`;
+      }
+    }
+
+    // ── Schedules ──
+    async function loadSchedules() {
+      try {
+        const resp = await fetch(`${API}/schedules?device_id=${deviceId}`);
+        const data = await resp.json();
+        renderSchedules(data.schedules || []);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderSchedules(schedules) {
+      const el = document.getElementById('schedules-list');
+      if (!schedules.length) {
+        el.innerHTML = '<div class="text-center py-3 small text-muted">No schedules</div>';
+        return;
+      }
+      el.innerHTML = schedules.map(s => `
+        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+          <div>
+            <p class="mb-0 small fw-semibold">${s.action}</p>
+            <small class="text-muted">${s.cron_expr}</small>
+          </div>
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteSchedule('${s.schedule_id}')">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>`).join('');
+    }
+
+    function showAddSchedule() {
+      new bootstrap.Modal(document.getElementById('scheduleModal')).show();
+    }
+
+    async function addSchedule() {
+      const action = document.getElementById('sch-action').value;
+      const cron = document.getElementById('sch-cron').value;
+      const duration = parseInt(document.getElementById('sch-duration').value);
+      await fetch(`${API}/schedules`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ device_id: deviceId, action, cron_expr: cron, params: { duration_min: duration } }),
+      });
+      bootstrap.Modal.getInstance(document.getElementById('scheduleModal')).hide();
+      loadSchedules();
+    }
+
+    async function deleteSchedule(id) {
+      await fetch(`${API}/schedules/${id}`, { method: 'DELETE' });
+      loadSchedules();
+    }
+
+    function copyCode() {
+      navigator.clipboard.writeText(document.getElementById('esp32-code').textContent);
+    }
+
+    // ── Auto-refresh ──
+    loadDevice();
+    setInterval(loadDevice, 30000);
+  </script>
+
+  <style>
+    .card { border-radius: 0.75rem; }
+    .badge { white-space: normal; }
+    .form-range::-webkit-slider-thumb { background: #198754; }
+  </style>
+</AdminLayout>

@@ -1,27 +1,64 @@
+"""Pydantic models for IoT API."""
 from pydantic import BaseModel
-from typing import Any, List, Optional
+from typing import Any
 
 
-class IoTDeviceMetric(BaseModel):
-    label: str
-    label_np: str
-    value: str
-    unit: str
-
-
-class IoTDevice(BaseModel):
-    id: str
+class DeviceRegisterRequest(BaseModel):
     name: str
-    name_np: str
-    status: str
-    deviceType: str
-    battery: int
-    metrics: List[IoTDeviceMetric]
-    landId: str = "land-1"
-    lastSync: str
+    device_type: str
+    location: str = "main"
+    sensors: list[str] = []
+    actuators: list[str] = []
+    config: dict[str, Any] = {}
+    battery: int = 100
+    lat: float = 0.0
+    lng: float = 0.0
+
+
+class DeviceUpdateRequest(BaseModel):
+    name: str | None = None
+    location: str | None = None
+    status: str | None = None
+    config: dict[str, Any] | None = None
+
+
+class TelemetryData(BaseModel):
+    data: dict[str, float]
 
 
 class IoTActionRequest(BaseModel):
     device_id: str
-    action: str  # e.g., "toggle_valve", "irrigate_1m"
-    value: Optional[Any] = None
+    action: str
+    params: dict[str, Any] = {}
+
+
+class AlertCreateRequest(BaseModel):
+    device_id: str
+    metric: str
+    value: float
+    threshold: str
+    severity: str = "warning"
+    message: str = ""
+
+
+class ScheduleCreateRequest(BaseModel):
+    device_id: str
+    action: str
+    params: dict[str, Any] = {}
+    cron_expr: str
+
+
+class ChatMessage(BaseModel):
+    message: str
+    history: list[dict[str, str]] = []
+
+
+class ChatResponse(BaseModel):
+    reply: str
+    device_config: dict[str, Any] | None = None
+    esp32_code: str | None = None
+    actions: list[dict[str, Any]] = []
+
+
+class CronJobUpdate(BaseModel):
+    enabled: bool

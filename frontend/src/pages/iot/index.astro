@@ -1,0 +1,462 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+<AdminLayout title="IoT मोनिटरिङ स्टेसन" activePage="iot">
+  <div class="mb-4">
+    <h5 class="mb-1">IoT मोनिटरिङ स्टेसन</h5>
+    <p class="text-muted mb-0 small">तपाईंका उपकरणहरूको अवस्था र डेटा हेर्नुहोस्</p>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="row g-3 mb-4" id="stats-row">
+    <div class="col-xl-3 col-md-6">
+      <div class="card stat-card shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <p class="text-muted mb-1 small">कुल उपकरण</p>
+              <h3 class="mb-0" id="stat-total">-</h3>
+            </div>
+            <div class="bg-success bg-opacity-10 rounded-circle p-3">
+              <i class="bi bi-router text-success fs-4"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+      <div class="card stat-card shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <p class="text-muted mb-1 small">सक्रिय</p>
+              <h3 class="mb-0 text-success" id="stat-active">-</h3>
+            </div>
+            <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+              <i class="bi bi-check-circle text-primary fs-4"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+      <div class="card stat-card shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <p class="text-muted mb-1 small">सतर्कता</p>
+              <h3 class="mb-0 text-warning" id="stat-alerts">-</h3>
+            </div>
+            <div class="bg-warning bg-opacity-10 rounded-circle p-3">
+              <i class="bi bi-exclamation-triangle text-warning fs-4"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+      <div class="card stat-card shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <p class="text-muted mb-1 small">क्रन जाब</p>
+              <h3 class="mb-0 text-info" id="stat-cron">-</h3>
+            </div>
+            <div class="bg-info bg-opacity-10 rounded-circle p-3">
+              <i class="bi bi-clock-history text-info fs-4"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left: Device Grid + Chat -->
+    <div class="col-lg-8">
+      <!-- Device Grid -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h6 class="mb-0"><i class="bi bi-router me-2"></i>उपकरणहरू</h6>
+          <button class="btn btn-sm btn-success" onclick="openAddDeviceChat()">
+            <i class="bi bi-plus-circle me-1"></i> उपकरण थप्नुहोस्
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="row g-3" id="device-grid">
+            <div class="col-12 text-center py-4">
+              <div class="spinner-border text-success" role="status"></div>
+              <p class="mt-2 text-muted small">लोड गर्दै...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add Device Chat Panel (hidden by default) -->
+      <div class="card shadow-sm mb-4 d-none" id="add-device-chat">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+          <h6 class="mb-0"><i class="bi bi-robot me-2"></i>उपकरण कन्फिगरेसन एजेन्ट</h6>
+          <button class="btn btn-sm btn-outline-light" onclick="closeAddDeviceChat()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="chat-messages" id="add-device-messages" style="height:300px;overflow-y:auto;">
+            <div class="alert alert-info small">
+              <i class="bi bi-info-circle me-1"></i>
+              आफ्नो उपकरणको बारेमा लेख्नुहोस्। उदाहरण: "मसँग DHT22 छ र माटोको नमी सेन्सर छ, पम्प पनि छ"
+            </div>
+          </div>
+          <div class="input-group mt-3">
+            <input type="text" class="form-control" id="add-device-input"
+                   placeholder="तपाईंको उपकरणको बारेमा लेख्नुहोस्..."
+                   onkeydown="if(event.key==='Enter')sendAddDeviceChat()" />
+            <button class="btn btn-success" onclick="sendAddDeviceChat()">
+              <i class="bi bi-send"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Device Config Result (hidden by default) -->
+      <div class="card shadow-sm mb-4 d-none" id="device-config-result">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h6 class="mb-0"><i class="bi bi-cpu me-2"></i>कन्फिगरेसन तयार</h6>
+          <button class="btn btn-sm btn-success" onclick="registerDevice()">
+            <i class="bi bi-plus-circle me-1"></i> दर्ता गर्नुहोस्
+          </button>
+        </div>
+        <div class="card-body" id="config-result-body"></div>
+      </div>
+    </div>
+
+    <!-- Right: Cron + Alerts -->
+    <div class="col-lg-4">
+      <!-- Cron Agents Panel -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>क्रन एजेन्टहरू</h6>
+          <button class="btn btn-sm btn-outline-info" onclick="refreshCron()">
+            <i class="bi bi-arrow-clockwise"></i>
+          </button>
+        </div>
+        <div class="card-body p-0" id="cron-list">
+          <div class="text-center py-3"><div class="spinner-border spinner-border-sm text-muted"></div></div>
+        </div>
+      </div>
+
+      <!-- Active Alerts -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h6 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>सक्रिय सतर्कता</h6>
+          <button class="btn btn-sm btn-outline-warning" onclick="refreshAlerts()">
+            <i class="bi bi-arrow-clockwise"></i>
+          </button>
+        </div>
+        <div class="card-body p-0" id="alerts-list">
+          <div class="text-center py-3"><div class="spinner-border spinner-border-sm text-muted"></div></div>
+        </div>
+      </div>
+
+      <!-- Sensor Types Reference -->
+      <div class="card shadow-sm">
+        <div class="card-header bg-white">
+          <h6 class="mb-0"><i class="bi bi-list-check me-2"></i>उपलब्ध सेन्सरहरू</h6>
+        </div>
+        <div class="card-body p-0">
+          <div class="list-group list-group-flush small" id="sensor-types-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    const API = '/api/iot';
+    let pendingDeviceConfig = null;
+    let addDeviceChatHistory = [];
+
+    // ── Load Devices ──
+    async function loadDevices() {
+      try {
+        const resp = await fetch(`${API}/devices`);
+        const data = await resp.json();
+        const devices = data.devices || [];
+        renderDeviceGrid(devices);
+        document.getElementById('stat-total').textContent = devices.length;
+        document.getElementById('stat-active').textContent = devices.filter(d => d.status === 'active').length;
+      } catch (e) {
+        console.error('Failed to load devices:', e);
+      }
+    }
+
+    function renderDeviceGrid(devices) {
+      const grid = document.getElementById('device-grid');
+      if (!devices.length) {
+        grid.innerHTML = '<div class="col-12 text-center py-4"><p class="text-muted">कुनै उपकरण छैन। "उपकरण थप्नुहोस्" बटन थिच्नुहोस्।</p></div>';
+        return;
+      }
+      grid.innerHTML = devices.map(d => {
+        const sensors = Array.isArray(d.sensors) ? d.sensors : [];
+        const battery = parseInt(d.battery) || 0;
+        const batteryColor = battery > 50 ? 'success' : battery > 20 ? 'warning' : 'danger';
+        const statusColor = d.status === 'active' ? 'success' : d.status === 'warning' ? 'warning' : 'secondary';
+        const sensorIcons = {
+          temperature: 'bi-thermometer-half', humidity: 'bi-droplet', co2: 'bi-cloud',
+          moisture: 'bi-moisture', ph: 'bi bi-droplet-half', light: 'bi-brightness-high',
+          pressure: 'bi-cloud-hail', rainfall: 'bi-cloud-rain'
+        };
+        return `
+          <div class="col-md-6 col-xl-4">
+            <div class="card h-100 border-0 shadow-sm" style="cursor:pointer" onclick="window.location='/iot/${d.device_id}'">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="bg-success bg-opacity-10 rounded p-2">
+                      <i class="bi bi-router text-success"></i>
+                    </div>
+                    <div>
+                      <h6 class="mb-0">${d.name}</h6>
+                      <small class="text-muted">${d.device_type} — ${d.location}</small>
+                    </div>
+                  </div>
+                  <span class="badge bg-${statusColor}">${d.status}</span>
+                </div>
+                <div class="d-flex gap-1 mb-2 flex-wrap">
+                  ${sensors.map(s => `<span class="badge bg-light text-dark"><i class="bi ${sensorIcons[s] || 'bi-cpu'} me-1"></i>${s}</span>`).join('')}
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <small class="text-muted">Battery</small>
+                  <div class="d-flex align-items-center gap-1">
+                    <div class="progress flex-grow-1" style="width:60px;height:6px">
+                      <div class="progress-bar bg-${batteryColor}" style="width:${battery}%"></div>
+                    </div>
+                    <small class="text-${batteryColor}">${battery}%</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    // ── Add Device Chat ──
+    function openAddDeviceChat() {
+      document.getElementById('add-device-chat').classList.remove('d-none');
+      document.getElementById('add-device-input').focus();
+    }
+    function closeAddDeviceChat() {
+      document.getElementById('add-device-chat').classList.add('d-none');
+      document.getElementById('device-config-result').classList.add('d-none');
+    }
+
+    async function sendAddDeviceChat() {
+      const input = document.getElementById('add-device-input');
+      const msg = input.value.trim();
+      if (!msg) return;
+      input.value = '';
+
+      const messagesDiv = document.getElementById('add-device-messages');
+      messagesDiv.innerHTML += `<div class="text-end mb-2"><span class="badge bg-success">${msg}</span></div>`;
+      messagesDiv.innerHTML += `<div class="mb-2" id="chat-loading"><div class="spinner-border spinner-border-sm text-muted"></div> <small class="text-muted">सोच्दै...</small></div>`;
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+      addDeviceChatHistory.push({ role: 'user', content: msg });
+
+      try {
+        const resp = await fetch(`${API}/chat/add-device`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: msg, history: addDeviceChatHistory.slice(-10) }),
+        });
+        const result = await resp.json();
+        document.getElementById('chat-loading')?.remove();
+
+        addDeviceChatHistory.push({ role: 'assistant', content: JSON.stringify(result) });
+
+        let replyText = result.follow_up || result.description || 'Done!';
+        messagesDiv.innerHTML += `<div class="mb-2"><span class="badge bg-light text-dark text-start">${replyText}</span></div>`;
+
+        if (result.sensors && result.sensors.length) {
+          pendingDeviceConfig = result;
+          showConfigResult(result);
+        }
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      } catch (e) {
+        document.getElementById('chat-loading')?.remove();
+        messagesDiv.innerHTML += `<div class="mb-2"><span class="badge bg-danger">Error: ${e.message}</span></div>`;
+      }
+    }
+
+    function showConfigResult(config) {
+      const panel = document.getElementById('device-config-result');
+      const body = document.getElementById('config-result-body');
+      panel.classList.remove('d-none');
+      body.innerHTML = `
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">नाम</label>
+            <input class="form-control form-control-sm" id="cfg-name" value="${config.device_name || ''}" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">प्रकार</label>
+            <input class="form-control form-control-sm" id="cfg-type" value="${config.device_type || 'custom'}" readonly />
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">विवरण</label>
+            <p class="small text-muted mb-0">${config.description || ''}</p>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">सेन्सरहरू</label>
+            <div>${(config.sensors || []).map(s => `<span class="badge bg-info me-1">${s}</span>`).join('')}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">एक्चुएटरहरू</label>
+            <div>${(config.actuators || []).map(a => `<span class="badge bg-warning me-1">${a}</span>`).join('')}</div>
+          </div>
+          ${config.connection_notes ? `<div class="col-12"><label class="form-label small fw-semibold">वायरिङ</label><p class="small text-muted mb-0">${config.connection_notes}</p></div>` : ''}
+          ${config.esp32_code ? `<div class="col-12"><label class="form-label small fw-semibold">ESP32 कोड</label><pre class="bg-dark text-success p-3 rounded small" style="max-height:200px;overflow:auto"><code>${config.esp32_code}</code></pre></div>` : ''}
+        </div>`;
+    }
+
+    async function registerDevice() {
+      if (!pendingDeviceConfig) return;
+      try {
+        const resp = await fetch(`${API}/devices`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: document.getElementById('cfg-name').value,
+            device_type: document.getElementById('cfg-type').value,
+            sensors: pendingDeviceConfig.sensors || [],
+            actuators: pendingDeviceConfig.actuators || [],
+          }),
+        });
+        if (resp.ok) {
+          alert('उपकरण दर्ता भयो!');
+          closeAddDeviceChat();
+          loadDevices();
+        } else {
+          const err = await resp.json();
+          alert('Error: ' + (err.detail || 'Failed'));
+        }
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+    }
+
+    // ── Cron Jobs ──
+    async function refreshCron() {
+      try {
+        const resp = await fetch(`${API}/cron/jobs`);
+        const data = await resp.json();
+        renderCronJobs(data.jobs || []);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderCronJobs(jobs) {
+      const el = document.getElementById('cron-list');
+      document.getElementById('stat-cron').textContent = jobs.length;
+      if (!jobs.length) {
+        el.innerHTML = '<div class="text-center py-3 small text-muted">No cron jobs</div>';
+        return;
+      }
+      el.innerHTML = jobs.map(j => `
+        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+          <div>
+            <p class="mb-0 small fw-semibold">${j.name}</p>
+            <small class="text-muted">${j.description || ''}</small>
+            <br><small class="text-muted">Runs: ${j.run_count} | Interval: ${j.interval_seconds}s</small>
+          </div>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" ${j.enabled ? 'checked' : ''}
+                   onchange="toggleCron('${j.name}', this.checked)" />
+          </div>
+        </div>`).join('');
+    }
+
+    async function toggleCron(name, enabled) {
+      await fetch(`${API}/cron/jobs/${name}/toggle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled }),
+      });
+    }
+
+    // ── Alerts ──
+    async function refreshAlerts() {
+      try {
+        const resp = await fetch(`${API}/alerts`);
+        const data = await resp.json();
+        const alerts = (data.alerts || []).filter(a => a.status === 'active');
+        document.getElementById('stat-alerts').textContent = alerts.length;
+        renderAlerts(alerts);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderAlerts(alerts) {
+      const el = document.getElementById('alerts-list');
+      if (!alerts.length) {
+        el.innerHTML = '<div class="text-center py-3 small text-muted">कुनै सतर्कता छैन</div>';
+        return;
+      }
+      el.innerHTML = alerts.slice(0, 5).map(a => {
+        const colors = { critical: 'danger', warning: 'warning', info: 'info' };
+        return `
+          <div class="d-flex align-items-start gap-2 p-3 border-bottom">
+            <i class="bi bi-exclamation-triangle text-${colors[a.severity] || 'secondary'} mt-1"></i>
+            <div class="flex-grow-1">
+              <p class="mb-0 small">${a.message}</p>
+              <small class="text-muted">${a.device_id} — ${a.created_at?.split('T')[0] || ''}</small>
+            </div>
+            <button class="btn btn-sm btn-outline-secondary" onclick="resolveAlert('${a.alert_id}')">
+              <i class="bi bi-check-lg"></i>
+            </button>
+          </div>`;
+      }).join('');
+    }
+
+    async function resolveAlert(id) {
+      await fetch(`${API}/alerts/${id}/resolve`, { method: 'POST' });
+      refreshAlerts();
+    }
+
+    // ── Sensor Types ──
+    async function loadSensorTypes() {
+      try {
+        const resp = await fetch(`${API}/types/sensors`);
+        const data = await resp.json();
+        const el = document.getElementById('sensor-types-list');
+        el.innerHTML = Object.entries(data.sensors || {}).map(([k, v]) => `
+          <div class="list-group-item">
+            <div class="d-flex justify-content-between">
+              <span class="fw-semibold">${v.label}</span>
+              <span class="text-muted">${v.unit}</span>
+            </div>
+            <small class="text-muted">${v.description}</small>
+          </div>`).join('');
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // ── Init ──
+    loadDevices();
+    refreshCron();
+    refreshAlerts();
+    loadSensorTypes();
+
+    // Auto-refresh every 30s
+    setInterval(() => { loadDevices(); refreshAlerts(); }, 30000);
+  </script>
+
+  <style>
+    .chat-messages .badge { white-space: normal; text-align: left; }
+    .stat-card { border: none; border-radius: 0.75rem; }
+    .stat-card:hover { transform: translateY(-2px); transition: transform 0.2s; }
+    .card { border-radius: 0.75rem; }
+  </style>
+</AdminLayout>
