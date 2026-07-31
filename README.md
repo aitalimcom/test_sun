@@ -9,27 +9,216 @@
 
 Submissions in this track are judged primarily on how effectively they handle **real Nepali Devanagari script and phonetic edge cases**—such as ambiguous conjuncts (`क्ष`, `त्र`, `ज्ञ`), Romanized code-switching (`tomato ma late blight ko spray`), schwa syncope, legacy Preeti ASCII font conversion, and regional dialect variations—rather than generic wrappers.
 
-```text
-┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                            KRISHI SEWA ARCHITECTURE & PIPELINE                                  │
-│                                                                                                  │
-│  [Farmer Voice / Image / Text Input in Nepali]                                                   │
-│       │                                                                                          │
-│       ▼                                                                                          │
-│  1. Preeti ASCII Font OCR & Devanagari Script Normalizer (Hraswa/Dirga, Sibilants, Numerals)     │
-│       │                                                                                          │
-│       ▼                                                                                          │
-│  2. Gemma 4 Transliteration Engine (Romanized Nepali -> Devanagari Unicode)                      │
-│       │                                                                                          │
-│       ▼                                                                                          │
-│  3. Gemma 4 Multi-Agent Router with <|think|> Reasoning Traces & 256K Context RAG                │
-│       │                                                                                          │
-│       ▼                                                                                          │
-│  4. ShieldGemma Safety Filter & PII Sanitizer (10-Digit Phone & Citizenship Masking)             │
-│       │                                                                                          │
-│       ▼                                                                                          │
-│  5. Government JTA Human-in-the-Loop Review Portal & 1-Click DPO JSONL Dataset Exporter          │
-└──────────────────────────────────────────────────────────────────────────────────────────────────┘
+### 📐 Project Architecture & System Flows
+
+To understand how Krishi Sewa orchestrates low-resource accessibility components, multi-agent routing, and human oversight, review the detailed system diagrams below.
+
+#### 1. High-Level System Architecture
+This diagram displays the flow from the user's mobile interface through the FastAPI API gateway, into the LangGraph orchestration loop, leveraging Google's Gemma 4 model suite, RAG knowledge bases, and SQLite storage.
+
+```mermaid
+graph TB
+    subgraph Client ["Client Layer (Farmer / JTA App)"]
+        Astro["Astro 5 PWA (Mobile-First UI)"]
+        Preact["Preact Interactive Islands"]
+        Speech["Web Speech API (Voice Input)"]
+        Offline["Service Worker (Offline Cache)"]
+        IndexedDB["IndexedDB (Offline App State)"]
+    end
+
+    subgraph API ["API & Gateway Layer"]
+        FastAPI["FastAPI Web Server"]
+        Routes["REST / SSE Streaming Endpoints"]
+    end
+
+    subgraph Core ["Core Processing & Orchestration Engine"]
+        LangGraph["LangGraph Workflow Orchestrator"]
+        Preprocess["Devanagari Normalizer & Preeti OCR"]
+        Supervisor["Agent Supervisor / Router"]
+        Synthesizer["Output Synthesizer Agent"]
+        ShieldGemma["ShieldGemma Safety & PII Masking"]
+    end
+
+    subgraph Agents ["Specialized Subagent Registry"]
+        DiseaseAgent["Disease Diagnosis Agent"]
+        AdvisoryAgent["Nutrient & Ag Advisory Agent"]
+        MarketAgent["Mandi Bajar Prices Agent"]
+        WeatherAgent["Weather Advisory Agent"]
+        IoTAgent["IoT Monitor & Control Agent"]
+        WebAgent["Web Search Agent"]
+    end
+
+    subgraph DB ["Data & Knowledge Store"]
+        SQLite["SQLite / JSON Store (App Data & Feedback)"]
+        ChromaDB["ChromaDB Vector Store (RAG)"]
+        GovPDFs["Nepal Gov Bulletins & Factsheets"]
+    end
+
+    subgraph Models ["Foundation Models (Google Gemma 4 Suite)"]
+        Gemma4IT["Gemma 4 31B IT (OpenRouter/Ollama)"]
+        GemmaE4B["Gemma E4B (On-Device Local Inference)"]
+        SG["ShieldGemma-2B (Safety Guardrails)"]
+    end
+
+    %% Client Interactions
+    Astro -->|REST / SSE Requests| FastAPI
+    FastAPI --> Routes
+    
+    %% API to Orchestrator
+    Routes -->|Invoke Graph| LangGraph
+    
+    %% LangGraph flow
+    LangGraph --> Preprocess
+    Preprocess --> Supervisor
+    Supervisor --> Agents
+    Agents --> Synthesizer
+    Synthesizer --> ShieldGemma
+    ShieldGemma -->|Safe Response| Routes
+
+    %% RAG & Data Access
+    Agents -->|Vector Query| ChromaDB
+    ChromaDB -->|Context Retrieval| GovPDFs
+    Agents -->|Read/Write Data| SQLite
+    
+    %% Models calls
+    Preprocess -.->|OCR/Transliteration| Gemma4IT
+    Supervisor -.->|Intent Classification| Gemma4IT
+    Agents -.->|Generation/Reasoning| Gemma4IT
+    Synthesizer -.->|Final Formatting| Gemma4IT
+    ShieldGemma -.->|Safety Filtering| SG
+    Offline -.->|Local Offline Query| GemmaE4B
+```
+
+---
+
+#### 2. LangGraph Multi-Agent Workflow
+This diagram illustrates the state transitions and routing mechanisms inside the LangGraph workflow executor, moving from preprocessing and routing to agent execution, synthesis, and safety filtering.
+
+```mermaid
+graph TD
+    Start([User Input: Voice/Image/Text]) --> NodePreprocess[Node 1: Preprocess]
+    
+    subgraph Preprocessing ["Input Normalization & Standardization"]
+        NodePreprocess --> Preeti["Preeti ASCII OCR Converter"]
+        NodePreprocess --> DevNorm["Devanagari Script Normalizer"]
+        NodePreprocess --> Translit["Romanized Transliteration Engine"]
+    end
+
+    Preprocessing --> NodeSupervisor[Node 2: Agent Supervisor]
+
+    subgraph Routing ["Dynamic Agent Routing"]
+        NodeSupervisor --> Classify{"Classify Intent & Context"}
+        Classify -->|Requires Subagent| RouteAgent[Route to Specific Agent]
+        Classify -->|Direct Complete| RouteEnd[Route directly to Synthesizer]
+    end
+
+    RouteAgent --> Disease["Disease Agent"]
+    RouteAgent --> Advisory["Advisory Agent"]
+    RouteAgent --> Market["Market Agent"]
+    RouteAgent --> Weather["Weather Agent"]
+    RouteAgent --> IoT["IoT Agent"]
+    RouteAgent --> Search["Web Search Agent"]
+
+    Disease --> NodeSynthesize[Node 3: Output Synthesize]
+    Advisory --> NodeSynthesize
+    Market --> NodeSynthesize
+    Weather --> NodeSynthesize
+    IoT --> NodeSynthesize
+    Search --> NodeSynthesize
+    RouteEnd --> NodeSynthesize
+
+    subgraph Synthesis ["Response Synthesis & Postprocessing"]
+        NodeSynthesize --> Synth["Output Synthesizer Agent"]
+        Synth --> Shield["ShieldGemma Safety Scan"]
+        Shield --> PII["PII Sanitizer (Phone & Citizen ID Mask)"]
+    end
+
+    PII --> End([Safe & Structured Response])
+```
+
+---
+
+#### 3. Core Functional Workflows
+
+##### A. Crop Doctor (Multimodal Leaf Disease Diagnosis)
+This sequence shows the path taken when a farmer submits a leaf photo for automated diagnosis, leveraging Gemma 4 Vision capabilities and ground truths retrieved from ChromaDB.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Farmer
+    participant UI as Astro Frontend
+    participant API as FastAPI Backend
+    participant Graph as LangGraph Agent Graph
+    participant RAG as ChromaDB Vector Store
+    participant LLM as Gemma 4 (Vision)
+
+    Farmer->>UI: Upload Crop Leaf Image & Voice/Text query
+    UI->>API: Send multipart POST /api/doctor/diagnose
+    API->>Graph: Initialize AgentState with original input
+    Graph->>Graph: Preprocess (Format image bytes + transcribe audio)
+    Graph->>LLM: Analyze Leaf Image (Visual symptoms, damage patterns)
+    LLM-->>Graph: Return preliminary visual diagnosis
+    Graph->>RAG: Vector Search for treatment/dosage in Gov Factsheets
+    RAG-->>Graph: Return grounded government treatment guidelines
+    Graph->>LLM: Synthesize final advice (grounded context + visual analysis)
+    LLM-->>Graph: Return structured advice with safety cautions
+    Graph-->>API: Return final response state
+    API-->>UI: Send response JSON (DiagnosisResult)
+    UI->>Farmer: Display interactive Treatment Card & Audio Pill narration
+```
+
+##### B. Government Human-in-the-Loop (HITL) & DPO Fine-tuning Pipeline
+This sequence maps how farmer queries and raw AI answers are enqueued for JTA expert validation, audited, corrected, and exported as a fine-tuning dataset.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Farmer
+    actor JTA as Gov JTA Officer
+    participant Backend as FastAPI Server
+    participant DB as hitl_audits.json
+    participant DPO as DPO Exporter
+
+    Farmer->>Backend: Submit agricultural query
+    Backend->>Backend: Route & process using Gemma 4 Graph
+    Backend->>DB: submit_for_review() (Store user query & raw AI response)
+    Note over DB: Record status is pending_review
+    
+    JTA->>Backend: Fetch list_pending() audits via Admin UI
+    Backend-->>JTA: Render pending farmer questions & Gemma raw responses
+    JTA->>JTA: Review details, edit response, correct dosages, add error tags
+    JTA->>Backend: Verify record (verify_record() with corrections & tags)
+    Backend->>DB: Update record (status = verified_corrected, save corrected text)
+    
+    Note over DPO: When model fine-tuning is scheduled
+    DPO->>DB: Load verified records
+    DPO->>DPO: Format as DPO pair (Prompt, Chosen: corrected, Rejected: raw)
+    DPO-->>DPO: Export as Hugging Face TRL-compatible JSONL dataset
+```
+
+##### C. IoT Automated Monitoring and Advisory Pipeline
+This diagram outlines how real-time telemetry from soil and environmental sensors triggers agentic analysis, threshold verification, and farmer notification.
+
+```mermaid
+graph TD
+    Sensors[IoT Sensors: Soil Moisture, N-P-K, Temp] -->|Telemetry MQTT/HTTP| IoTRoutes[FastAPI /api/iot Endpoint]
+    IoTRoutes --> IoTDB[SQLite Telemetry Database]
+    
+    subgraph Analysis ["IoT Advisory Engine (Cron Job)"]
+        IoTRoutes -->|Trigger| IoTAgent[IoT Monitor Agent]
+        IoTAgent --> CheckThresholds{Threshold Breach Detected?}
+        CheckThresholds -->|Yes: e.g. Soil Moisture < 25%| AlertState[Create Alert State]
+        CheckThresholds -->|No: Within normal limits| LogState[Log Telemetry Only]
+    end
+
+    AlertState --> FarmAgent[Farm Cycle & Nutrient Agent]
+    FarmAgent -->|RAG Lookup| Chroma[ChromaDB Government Advisory factsheets]
+    Chroma -->|Advisory Guidance| AdvAgent[Daily Advisory Agent]
+    
+    AdvAgent -->|Compose Notification| Synth[Output Synthesizer Agent]
+    Synth --> UI[Astro Frontend Dashboard]
+    UI -->|PWA Push Notification / SMS| Farmer([Farmer Notification: 'Irrigate Hectar 2 Now'])
 ```
 
 ---
@@ -37,7 +226,7 @@ Submissions in this track are judged primarily on how effectively they handle **
 ## 📁 Repository Structure
 
 ```text
-d:\downloads\hackathon\
+./
 ├── backend/                   # FastAPI Python server (Agents, HITL Engine, Normalizers, ShieldGemma)
 │   ├── agents/                # Gemma 4 multi-agent orchestrator & query reformulator
 │   ├── core/                  # Devanagari normalizer, Preeti converter, ShieldGemma, HITL engine
@@ -142,6 +331,6 @@ npm run build
 
 ## 📄 Key Documentation Artifacts
 
-- [KAGGLE_SUBMISSION_WRITEUP.md](file:///d:/downloads/hackathon/KAGGLE_SUBMISSION_WRITEUP.md): Kaggle Hackathon Submission Writeup
-- [GEMMA4_GOV_HUMAN_IN_LOOP_200_TASKS.md](file:///d:/downloads/hackathon/GEMMA4_GOV_HUMAN_IN_LOOP_200_TASKS.md): 220 Government HITL & Gemma 4 Task Roadmap
-- [GEMMA_NEPALI_ACCESSIBILITY_200_TASKS.md](file:///d:/downloads/hackathon/GEMMA_NEPALI_ACCESSIBILITY_200_TASKS.md): Master Task List
+- [KAGGLE_SUBMISSION_WRITEUP.md](file:///c:/Users/ACER/OneDrive/Desktop/MargaDarshan/hackathon/hackathon/KAGGLE_SUBMISSION_WRITEUP.md): Kaggle Hackathon Submission Writeup
+- [GEMMA4_GOV_HUMAN_IN_LOOP_200_TASKS.md](file:///c:/Users/ACER/OneDrive/Desktop/MargaDarshan/hackathon/hackathon/GEMMA4_GOV_HUMAN_IN_LOOP_200_TASKS.md): 220 Government HITL & Gemma 4 Task Roadmap
+- [GEMMA_NEPALI_ACCESSIBILITY_200_TASKS.md](file:///c:/Users/ACER/OneDrive/Desktop/MargaDarshan/hackathon/hackathon/GEMMA_NEPALI_ACCESSIBILITY_200_TASKS.md): Master Task List
