@@ -1,0 +1,157 @@
+---
+import AdminLayout from '../layouts/AdminLayout.astro';
+---
+<AdminLayout title="ड्यासबोर्ड" activePage="dashboard">
+  <div class="row g-4 mb-4">
+    <div class="col-xl-3 col-md-6">
+      <div class="card stat-card shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <p class="text-muted mb-1 small">कुल किसान</p>
+              <h3 class="mb-0">१,२४५</h3>
+            </div>
+            <div class="bg-success bg-opacity-10 rounded-circle p-3">
+              <i class="bi bi-person-workspace text-success fs-4"></i>
+            </div>
+          </div>
+          <small class="text-success"><i class="bi bi-arrow-up"></i> +१२% यस महिना</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+      <div class="card stat-card shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <p class="text-muted mb-1 small">दर्ता भएका योजना</p>
+              <h3 class="mb-0">८</h3>
+            </div>
+            <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+              <i class="bi bi-bank text-primary fs-4"></i>
+            </div>
+          </div>
+          <small class="text-muted">३ सक्रिय</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+      <div class="card stat-card shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <p class="text-muted mb-1 small">अनुदान रकम</p>
+              <h3 class="mb-0">₹४५ लाख</h3>
+            </div>
+            <div class="bg-warning bg-opacity-10 rounded-circle p-3">
+              <i class="bi bi-currency-rupee text-warning fs-4"></i>
+            </div>
+          </div>
+          <small class="text-success"><i class="bi bi-arrow-up"></i> +८% वार्षिक</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+      <div class="card stat-card shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <p class="text-muted mb-1 small">प्रतिवेदन</p>
+              <h3 class="mb-0">२३</h3>
+            </div>
+            <div class="bg-info bg-opacity-10 rounded-circle p-3">
+              <i class="bi bi-file-earmark-text text-info fs-4"></i>
+            </div>
+          </div>
+          <small class="text-muted">५ नयाँ</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h6 class="mb-0">हालका किसान दर्ता</h6>
+          <a href="/farmer" class="btn btn-sm btn-outline-success">सबै हेर्नुहोस्</a>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>नाम</th>
+                  <th>जिल्ला</th>
+                  <th>बाली</th>
+                  <th>दर्ता मिति</th>
+                  <th>स्थिति</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>राम बहादुर श्रेष्ठ</td>
+                  <td>काठमाडौं</td>
+                  <td>धान</td>
+                  <td>२०८२-०३-१५</td>
+                  <td><span class="badge bg-success">सक्रिय</span></td>
+                </tr>
+                <tr>
+                  <td>सीता देवी पौडेल</td>
+                  <td>ललितपुर</td>
+                  <td>मकै</td>
+                  <td>२०८२-०३-१२</td>
+                  <td><span class="badge bg-success">सक्रिय</span></td>
+                </tr>
+                <tr>
+                  <td>हरि प्रसाद गुरुङ</td>
+                  <td>चितवन</td>
+                  <td>गोलभेडा</td>
+                  <td>२०८२-०३-१०</td>
+                  <td><span class="badge bg-warning">प्रक्रियामा</span></td>
+                </tr>
+                <tr>
+                  <td>कमला थापा</td>
+                  <td>भक्तपुर</td>
+                  <td>आलु</td>
+                  <td>२०८२-०३-०८</td>
+                  <td><span class="badge bg-success">सक्रिय</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white">
+          <h6 class="mb-0">तत्काल कार्यहरू</h6>
+        </div>
+        <div class="card-body">
+          <div class="d-flex align-items-center gap-3 mb-3 p-2 bg-light rounded">
+            <i class="bi bi-exclamation-triangle text-warning fs-5"></i>
+            <div>
+              <p class="mb-0 small fw-semibold">५ जनाको दर्ता प्रक्रियामा</p>
+              <small class="text-muted">अनुमोदन बाँकी</small>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-3 mb-3 p-2 bg-light rounded">
+            <i class="bi bi-file-earmark-arrow-up text-info fs-5"></i>
+            <div>
+              <p class="mb-0 small fw-semibold">मासिक प्रतिवेदन बाँकी</p>
+              <small class="text-muted">आज म्याद</small>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-3 p-2 bg-light rounded">
+            <i class="bi bi-bank text-success fs-5"></i>
+            <div>
+              <p class="mb-0 small fw-semibold">नयाँ योजना अपडेट</p>
+              <small class="text-muted">२ नयाँ योजना</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</AdminLayout>

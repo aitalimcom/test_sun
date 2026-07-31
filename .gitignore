@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Environment
+.env
+.env.local
+
+# Build
+dist/
+.build/
+.output/
+.astro/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database (runtime data — keep structure via .gitkeep)
+database/**/*.json
+database/**/*.csv
+database/**/*.log
+
+# Logs
+*.log
+
+# Reference dumps (not part of this project)
+_dump/
+
+# Temp files
+*.tmp
+*.bak

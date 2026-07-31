@@ -1,0 +1,87 @@
+---
+import AdminLayout from '../layouts/AdminLayout.astro';
+---
+<AdminLayout title="प्रतिवेदन" activePage="reports">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h5 class="mb-1">प्रतिवेदन</h5>
+      <p class="text-muted mb-0 small">कृषि तथ्यांक र विश्लेषण</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-success btn-sm"><i class="bi bi-download me-1"></i> PDF</button>
+      <button class="btn btn-outline-success btn-sm"><i class="bi bi-file-earmark-excel me-1"></i> Excel</button>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <div class="col-md-3">
+      <div class="card shadow-sm text-center">
+        <div class="card-body">
+          <i class="bi bi-person-workspace text-success fs-3"></i>
+          <h4 class="mt-2 mb-0">१,२४५</h4>
+          <small class="text-muted">कुल किसान</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm text-center">
+        <div class="card-body">
+          <i class="bi bi-seedling text-primary fs-3"></i>
+          <h4 class="mt-2 mb-0">५,२३०</h4>
+          <small class="text-muted">कुल विगा</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm text-center">
+        <div class="card-body">
+          <i class="bi bi-currency-rupee text-warning fs-3"></i>
+          <h4 class="mt-2 mb-0">₹४५ लाख</h4>
+          <small class="text-muted">कुल अनुदान</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm text-center">
+        <div class="card-body">
+          <i class="bi bi-bank text-info fs-3"></i>
+          <h4 class="mt-2 mb-0">८</h4>
+          <small class="text-muted">सक्रिय योजना</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white"><h6 class="mb-0">जिल्ला अनुसार किसान</h6></div>
+        <div class="card-body">
+          <div class="d-flex justify-content-between mb-2"><span class="small">काठमाडौं</span><span class="small fw-bold">४५०</span></div>
+          <div class="progress mb-3" style="height:8px"><div class="progress-bar bg-success" style="width:36%"></div></div>
+          <div class="d-flex justify-content-between mb-2"><span class="small">ललितपुर</span><span class="small fw-bold">३२०</span></div>
+          <div class="progress mb-3" style="height:8px"><div class="progress-bar bg-primary" style="width:26%"></div></div>
+          <div class="d-flex justify-content-between mb-2"><span class="small">भक्तपुर</span><span class="small fw-bold">२७५</span></div>
+          <div class="progress mb-3" style="height:8px"><div class="progress-bar bg-info" style="width:22%"></div></div>
+          <div class="d-flex justify-content-between mb-2"><span class="small">चितवन</span><span class="small fw-bold">२००</span></div>
+          <div class="progress" style="height:8px"><div class="progress-bar bg-warning" style="width:16%"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white"><h6 class="mb-0">बाली अनुसार किसान</h6></div>
+        <div class="card-body">
+          <div class="d-flex justify-content-between mb-2"><span class="small">धान</span><span class="small fw-bold">५२०</span></div>
+          <div class="progress mb-3" style="height:8px"><div class="progress-bar bg-success" style="width:42%"></div></div>
+          <div class="d-flex justify-content-between mb-2"><span class="small">मकै</span><span class="small fw-bold">३८०</span></div>
+          <div class="progress mb-3" style="height:8px"><div class="progress-bar bg-primary" style="width:30%"></div></div>
+          <div class="d-flex justify-content-between mb-2"><span class="small">गोलभेडा</span><span class="small fw-bold">२१०</span></div>
+          <div class="progress mb-3" style="height:8px"><div class="progress-bar bg-info" style="width:17%"></div></div>
+          <div class="d-flex justify-content-between mb-2"><span class="small">आलु</span><span class="small fw-bold">१३५</span></div>
+          <div class="progress" style="height:8px"><div class="progress-bar bg-warning" style="width:11%"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</AdminLayout>

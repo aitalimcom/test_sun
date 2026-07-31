@@ -1,0 +1,526 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+<AdminLayout title="किसान दर्ता" activePage="farmer-register">
+  <div class="mb-4">
+    <a href="/farmer" class="text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>फर्कनुहोस्</a>
+    <h5 class="mt-2 mb-1">नयाँ किसान दर्ता</h5>
+    <p class="text-muted small">किसानको विवरण भर्नुहोस्</p>
+  </div>
+
+  <!-- OCR Card -->
+  <div class="card shadow-sm mb-4 border-primary" id="ocr-card">
+    <div class="card-body">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <div class="ocr-logo">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="36" height="36" rx="8" fill="#2F5233"/>
+            <path d="M10 18C10 13.58 13.58 10 18 10C22.42 10 26 13.58 26 18" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="18" cy="20" r="4" fill="white"/>
+            <path d="M14 28L18 24L22 28" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="flex-grow-1">
+          <h6 class="mb-0">नागरिकता OCR <small class="text-muted fw-normal">Gemma 4 Vision</small></h6>
+          <small class="text-muted">दस्तावेज पहिचान गरी विवरण सुझाव दिन्छ</small>
+        </div>
+        <button type="button" class="btn btn-outline-success btn-sm" id="ocr-test-btn" title="Test with sample image">
+          <i class="bi bi-image me-1"></i> परीक्षण
+        </button>
+      </div>
+
+      <!-- Dropzone -->
+      <div id="ocr-dropzone" class="ocr-dropzone text-center p-4 rounded-3 border border-2 border-dashed border-success mb-3" style="cursor:pointer;">
+        <i class="bi bi-cloud-arrow-up text-success fs-1"></i>
+        <p class="mt-2 mb-1 fw-semibold">नागरिकता पत्रको फोटो यहाँ ड्र्याग गर्नुहोस्</p>
+        <small class="text-muted">वा क्लिक गरेर फाइल छान्नुहोस् (JPG, PNG)</small>
+        <input type="file" id="ocr-file-input" accept="image/*" class="d-none" />
+      </div>
+
+      <!-- Preview -->
+      <div id="ocr-preview-area" class="d-none mb-3">
+        <div class="position-relative d-inline-block">
+          <img id="ocr-preview-img" class="img-fluid rounded" style="max-height:200px;" />
+          <button id="ocr-remove-btn" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle" style="width:28px;height:28px;">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div id="ocr-status" class="d-none">
+        <div class="d-flex align-items-center gap-2 text-primary py-2">
+          <div class="spinner-border spinner-border-sm" role="status"></div>
+          <span id="ocr-status-text">विश्लेषण गर्दैछ...</span>
+        </div>
+      </div>
+
+      <!-- Document Detection Result -->
+      <div id="ocr-doc-info" class="d-none mb-3">
+        <div class="d-flex align-items-center gap-2 p-2 bg-light rounded">
+          <i class="bi bi-file-earmark-text text-primary"></i>
+          <span id="ocr-doc-type" class="fw-semibold"></span>
+          <span class="badge bg-secondary ms-auto" id="ocr-doc-confidence"></span>
+        </div>
+        <div id="ocr-face-info" class="d-none mt-2">
+          <small class="text-muted"><i class="bi bi-person-bounding-box me-1"></i><span id="ocr-face-desc"></span></small>
+        </div>
+      </div>
+
+      <!-- Suggestions -->
+      <div id="ocr-suggestions" class="d-none">
+        <h6 class="text-success mb-2"><i class="bi bi-lightbulb me-1"></i> AI सुझावहरू — क्लिक गरेर स्वीकार गर्नुहोस्</h6>
+        <div id="ocr-suggestion-list" class="row g-2 mb-3"></div>
+      </div>
+
+      <!-- Result/Error -->
+      <div id="ocr-result" class="d-none alert alert-success mt-3 mb-0 py-2">
+        <i class="bi bi-check-circle me-1"></i>
+        <span id="ocr-result-text"></span>
+      </div>
+      <div id="ocr-error" class="d-none alert alert-danger mt-3 mb-0 py-2">
+        <i class="bi bi-exclamation-triangle me-1"></i>
+        <span id="ocr-error-text"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Registration Form -->
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <form id="farmer-form">
+            <h6 class="text-success mb-3"><i class="bi bi-person me-2"></i>व्यक्तिगत विवरण</h6>
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label class="form-label">पहिलो नाम *</label>
+                <input type="text" class="form-control" id="field-first_name" name="first_name" required />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">थर *</label>
+                <input type="text" class="form-control" id="field-last_name" name="last_name" required />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">संपर्क नं. *</label>
+                <input type="tel" class="form-control" id="field-phone" name="phone" placeholder="98XXXXXXXX" required />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">नागरिकता नं.</label>
+                <input type="text" class="form-control" id="field-citizenship_number" name="citizenship_number" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">लिङ्ग</label>
+                <select class="form-select" id="field-gender" name="gender">
+                  <option value="">छान्नुहोस्</option>
+                  <option value="पुरुष">पुरुष</option>
+                  <option value="महिला">महिला</option>
+                  <option value="अन्य">अन्य</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">जन्म मिति</label>
+                <input type="date" class="form-control" id="field-dob" name="dob" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">बुवाको नाम</label>
+                <input type="text" class="form-control" id="field-father_name" name="father_name" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">आमाको नाम</label>
+                <input type="text" class="form-control" id="field-mother_name" name="mother_name" />
+              </div>
+            </div>
+
+            <h6 class="text-success mb-3"><i class="bi bi-geo-alt me-2"></i>ठेगाना</h6>
+            <div class="row g-3 mb-4">
+              <div class="col-md-4">
+                <label class="form-label">प्रदेश *</label>
+                <select class="form-select" id="field-province" name="province" required>
+                  <option value="">छान्नुहोस्</option>
+                  <option>बागमती</option>
+                  <option>गण्डकी</option>
+                  <option>लुम्बिनी</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">जिल्ला *</label>
+                <select class="form-select" id="field-district" name="district" required>
+                  <option value="">छान्नुहोस्</option>
+                  <option>काठमाडौं</option>
+                  <option>ललितपुर</option>
+                  <option>भक्तपुर</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">नगरपालिका *</label>
+                <input type="text" class="form-control" id="field-municipality" name="municipality" required />
+              </div>
+              <div class="col-12">
+                <label class="form-label">पूर्ण ठेगाना</label>
+                <textarea class="form-control" id="field-address" name="address" rows="2"></textarea>
+              </div>
+            </div>
+
+            <h6 class="text-success mb-3"><i class="bi bi-seedling me-2"></i>कृषि विवरण</h6>
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label class="form-label">मुख्य बाली *</label>
+                <select class="form-select" id="field-crop" name="crop" required>
+                  <option value="">छान्नुहोस्</option>
+                  <option>धान</option>
+                  <option>मकै</option>
+                  <option>गोलभेडा</option>
+                  <option>आलु</option>
+                  <option>गहुँ</option>
+                  <option>अन्य</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">जमिन क्षेत्रफल (विगा) *</label>
+                <input type="number" class="form-control" id="field-land_area" name="land_area" required />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">सिँचाइ स्रोत</label>
+                <select class="form-select" id="field-irrigation" name="irrigation">
+                  <option value="">छान्नुहोस्</option>
+                  <option>खोला/नहर</option>
+                  <option>ट्याङ्की</option>
+                  <option>बोरिङ</option>
+                  <option>वर्षा</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">वार्षिक उत्पादन (मेट्रिक टन)</label>
+                <input type="number" class="form-control" id="field-production" name="production" step="0.1" />
+              </div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-success"><i class="bi bi-check-circle me-1"></i> दर्ता गर्नुहोस्</button>
+              <a href="/farmer" class="btn btn-outline-secondary">रद्द गर्नुहोस्</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white"><h6 class="mb-0">दर्ता गाइड</h6></div>
+        <div class="card-body">
+          <div class="d-flex align-items-start gap-2 mb-3">
+            <i class="bi bi-check-circle-fill text-success mt-1"></i>
+            <small>पहिलो नाम, थर, संपर्क नं. अनिवार्य छ</small>
+          </div>
+          <div class="d-flex align-items-start gap-2 mb-3">
+            <i class="bi bi-check-circle-fill text-success mt-1"></i>
+            <small>जिल्ला र नगरपालिका छान्नुहोस्</small>
+          </div>
+          <div class="d-flex align-items-start gap-2 mb-3">
+            <i class="bi bi-check-circle-fill text-success mt-1"></i>
+            <small>बाली र जमिन क्षेत्रफल भर्नुहोस्</small>
+          </div>
+          <hr />
+          <div class="d-flex align-items-start gap-2">
+            <div class="ocr-logo-sm">
+              <svg width="20" height="20" viewBox="0 0 36 36" fill="none"><rect width="36" height="36" rx="8" fill="#2F5233"/><circle cx="18" cy="20" r="4" fill="white"/><path d="M14 28L18 24L22 28" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+            <small>नागरिकता फोटो अपलोड गरेर <strong>Gemma 4 AI</strong> ले सुझाव दिन्छ</small>
+          </div>
+        </div>
+      </div>
+      <div class="card shadow-sm border-warning">
+        <div class="card-body text-center">
+          <i class="bi bi-info-circle text-warning fs-3"></i>
+          <p class="mt-2 mb-0 small">दर्ता भएपछि किसानले योजनामा आवेदन गर्न सक्नेछन्।</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Test Image Modal -->
+  <div class="modal fade" id="testImageModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h6 class="modal-title"><i class="bi bi-image me-2"></i>परीक्षण छवि</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p class="small text-muted mb-3">नमूना नागरिकता छवि प्रयोग गरेर OCR परीक्षण गर्नुहोस्:</p>
+          <div class="row g-2">
+            <div class="col-6">
+              <button class="btn btn-outline-success w-100 p-3 test-img-btn" data-test="citizenship_front">
+                <i class="bi bi-card-image fs-4 d-block mb-1"></i>
+                <small>नागरिकता (अघिल्लो)</small>
+              </button>
+            </div>
+            <div class="col-6">
+              <button class="btn btn-outline-success w-100 p-3 test-img-btn" data-test="citizenship_back">
+                <i class="bi bi-card-image fs-4 d-block mb-1"></i>
+                <small>नागरिकता (पछाडि)</small>
+              </button>
+            </div>
+          </div>
+          <div class="mt-3 p-2 bg-light rounded">
+            <small class="text-muted"><i class="bi bi-info-circle me-1"></i> यी नमूना छविहरू परीक्षणका लागि मात्र हुन्। वास्तविक दर्तामा आफ्नै नागरिकता फोटो प्रयोग गर्नुहोस्।</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    (function() {
+      // DOM refs
+      const dropzone = document.getElementById('ocr-dropzone');
+      const fileInput = document.getElementById('ocr-file-input');
+      const previewArea = document.getElementById('ocr-preview-area');
+      const previewImg = document.getElementById('ocr-preview-img');
+      const removeBtn = document.getElementById('ocr-remove-btn');
+      const statusDiv = document.getElementById('ocr-status');
+      const statusText = document.getElementById('ocr-status-text');
+      const resultDiv = document.getElementById('ocr-result');
+      const resultText = document.getElementById('ocr-result-text');
+      const errorDiv = document.getElementById('ocr-error');
+      const errorText = document.getElementById('ocr-error-text');
+      const docInfo = document.getElementById('ocr-doc-info');
+      const docType = document.getElementById('ocr-doc-type');
+      const docConfidence = document.getElementById('ocr-doc-confidence');
+      const faceInfo = document.getElementById('ocr-face-info');
+      const faceDesc = document.getElementById('ocr-face-desc');
+      const suggestionsDiv = document.getElementById('ocr-suggestions');
+      const suggestionList = document.getElementById('ocr-suggestion-list');
+      const testBtn = document.getElementById('ocr-test-btn');
+
+      if (!window.location.pathname.includes('/farmer/register')) return;
+
+      // Field mapping: OCR key → form field ID
+      const FIELD_MAP = {
+        first_name: { fieldId: 'field-first_name', label: 'पहिलो नाम' },
+        last_name: { fieldId: 'field-last_name', label: 'थर' },
+        citizenship_number: { fieldId: 'field-citizenship_number', label: 'नागरिकता नं.' },
+        gender: { fieldId: 'field-gender', label: 'लिङ्ग' },
+        date_of_birth: { fieldId: 'field-dob', label: 'जन्म मिति' },
+        father_name: { fieldId: 'field-father_name', label: 'बुवाको नाम' },
+        mother_name: { fieldId: 'field-mother_name', label: 'आमाको नाम' },
+        address: { fieldId: 'field-address', label: 'ठेगाना' },
+      };
+
+      // Test image URLs — actual PNG images (Gemma 4 vision requires raster images, not SVG)
+      const TEST_IMAGES = {
+        citizenship_front: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAAEYCAIAAAD9PjcuAAADrklEQVR4nO3UsQkAIBDAwN9/Uh3A3hXsJHBwA6TKrLMBEuZ7AcAjwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8i4itrvxKhQt2EAAAAASUVORK5CYII=',
+        citizenship_back: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAAD6CAIAAAAAxYYTAAADTUlEQVR4nO3UsQkAIBDAwN9/TTewF1zBTgIHN0CqzNoHIGG+FwA8Miwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8gwLCDDsIAMwwIyDAvIMCwgw7CADMMCMgwLyDAsIMOwgAzDAjIMC8i4itrvxKhQt2EAAAAASUVORK5CYII=',
+      };
+
+      // === Dropzone Events ===
+      dropzone.addEventListener('click', () => fileInput.click());
+      dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('border-success', 'bg-success', 'bg-opacity-10'); });
+      dropzone.addEventListener('dragleave', () => { dropzone.classList.remove('border-success', 'bg-success', 'bg-opacity-10'); });
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('border-success', 'bg-success', 'bg-opacity-10');
+        if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+      });
+      fileInput.addEventListener('change', (e) => { if (e.target.files.length) handleFile(e.target.files[0]); });
+
+      // === Remove button ===
+      removeBtn.addEventListener('click', resetOCR);
+
+      // === Test image button ===
+      testBtn.addEventListener('click', () => {
+        new bootstrap.Modal(document.getElementById('testImageModal')).show();
+      });
+
+      document.querySelectorAll('.test-img-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const key = btn.dataset.test;
+          bootstrap.Modal.getInstance(document.getElementById('testImageModal')).hide();
+          if (TEST_IMAGES[key]) {
+            showPreview(TEST_IMAGES[key]);
+            performOCR(TEST_IMAGES[key]);
+          }
+        });
+      });
+
+      function resetOCR() {
+        fileInput.value = '';
+        previewArea.classList.add('d-none');
+        dropzone.classList.remove('d-none');
+        statusDiv.classList.add('d-none');
+        resultDiv.classList.add('d-none');
+        errorDiv.classList.add('d-none');
+        docInfo.classList.add('d-none');
+        suggestionsDiv.classList.add('d-none');
+        suggestionList.innerHTML = '';
+      }
+
+      function showPreview(src) {
+        previewImg.src = src;
+        previewArea.classList.remove('d-none');
+        dropzone.classList.add('d-none');
+      }
+
+      function handleFile(file) {
+        if (!file.type.startsWith('image/')) {
+          showError('कृपया छवि फाइल छान्नुहोस्');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          showPreview(e.target.result);
+          performOCR(e.target.result);
+        };
+        reader.readAsDataURL(file);
+      }
+
+      async function performOCR(dataUrl) {
+        showStatus('Gemma 4 AI ले दस्तावेज पहिचान गर्दैछ...');
+        resetResults();
+
+        try {
+          // Step 1: Analyze document
+          const analyzeResp = await fetch('/api/ocr/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: dataUrl }),
+          });
+
+          if (!analyzeResp.ok) throw new Error('दस्तावेज विश्लेषण असफल');
+          const docData = await analyzeResp.json();
+
+          // Show document info
+          docType.textContent = docData.document_type_np || docData.document_type || 'अज्ञात';
+          docConfidence.textContent = docData.confidence === 'high' ? 'उच्च विश्वास' : docData.confidence === 'medium' ? 'मध्यम विश्वास' : 'कम विश्वास';
+          docConfidence.className = 'badge ms-auto ' + (docData.confidence === 'high' ? 'bg-success' : docData.confidence === 'medium' ? 'bg-warning' : 'bg-danger');
+          docInfo.classList.remove('d-none');
+
+          if (docData.has_face_photo && docData.face_location) {
+            faceDesc.textContent = `चेहरा फोटो: ${docData.face_location === 'top-left' ? 'माथि बायाँ' : docData.face_location === 'top-right' ? 'माथि दायाँ' : 'अन्य स्थान'}मा छ`;
+            faceInfo.classList.remove('d-none');
+          }
+
+          if (docData.document_type !== 'citizenship') {
+            showError(`यो ${docData.document_type_np || 'अन्य'} दस्तावेज जस्तो देखिन्छ। नागरिकता पत्र अपलोड गर्नुहोस्।`);
+            hideStatus();
+            return;
+          }
+
+          // Step 2: Extract fields
+          showStatus('Gemma 4 AI ले विवरण पढ्दैछ...');
+          const extractResp = await fetch('/api/ocr/extract', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: dataUrl }),
+          });
+
+          if (!extractResp.ok) throw new Error('विवरण निकाल्न असफल');
+          const fieldsData = await extractResp.json();
+
+          // Build suggestions UI
+          showSuggestions(fieldsData);
+
+          const extracted = Object.entries(fieldsData).filter(([k, v]) => v && v.value !== null);
+          showResult(`${extracted.length} विवरण पत्ता लाग्यो। तलका सुझावहरू स्वीकार गर्नुहोस् वा सिधै फारम भर्नुहोस्।`);
+
+        } catch (err) {
+          showError('OCR प्रशोधनमा समस्या: ' + err.message);
+        } finally {
+          hideStatus();
+        }
+      }
+
+      function showSuggestions(fieldsData) {
+        suggestionList.innerHTML = '';
+        let hasSuggestions = false;
+
+        for (const [key, info] of Object.entries(fieldsData)) {
+          if (!info || !info.value) continue;
+          const mapping = FIELD_MAP[key];
+          if (!mapping) continue;
+
+          hasSuggestions = true;
+          const field = document.getElementById(mapping.fieldId);
+          const alreadyFilled = field && field.value && field.value.trim() !== '';
+
+          const col = document.createElement('div');
+          col.className = 'col-md-6';
+
+          const confBadge = info.confidence === 'high' ? 'bg-success' : info.confidence === 'medium' ? 'bg-warning text-dark' : 'bg-secondary';
+
+          col.innerHTML = `
+            <div class="card border-1 ${alreadyFilled ? 'border-secondary' : 'border-success'} suggestion-card">
+              <div class="card-body py-2 px-3">
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                  <small class="fw-semibold text-muted">${mapping.label}</small>
+                  <span class="badge ${confBadge}" style="font-size:0.65rem">${info.confidence === 'high' ? 'उच्च' : info.confidence === 'medium' ? 'मध्यम' : 'कम'}</span>
+                </div>
+                <p class="mb-1 fw-semibold" style="font-size:0.95rem">${info.value}</p>
+                ${alreadyFilled
+                  ? `<small class="text-muted"><i class="bi bi-lock me-1"></i>पहिले नै भरिएको</small>`
+                  : `<button class="btn btn-sm btn-outline-success py-0 accept-suggestion" data-key="${key}" data-value="${encodeURIComponent(info.value)}">
+                       <i class="bi bi-check2 me-1"></i>स्वीकार
+                     </button>`
+                }
+              </div>
+            </div>
+          `;
+          suggestionList.appendChild(col);
+        }
+
+        if (hasSuggestions) {
+          suggestionsDiv.classList.remove('d-none');
+        }
+
+        // Accept suggestion buttons
+        suggestionList.querySelectorAll('.accept-suggestion').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const key = btn.dataset.key;
+            const value = decodeURIComponent(btn.dataset.value);
+            const mapping = FIELD_MAP[key];
+            if (!mapping) return;
+
+            const field = document.getElementById(mapping.fieldId);
+            if (field) {
+              field.value = value;
+              field.classList.add('is-valid');
+              setTimeout(() => field.classList.remove('is-valid'), 2000);
+            }
+
+            // Mark as accepted
+            const card = btn.closest('.suggestion-card');
+            if (card) {
+              card.classList.remove('border-success');
+              card.classList.add('border-primary');
+              btn.outerHTML = '<small class="text-success"><i class="bi bi-check-circle-fill me-1"></i>स्वीकार भयो</small>';
+            }
+          });
+        });
+      }
+
+      function resetResults() {
+        resultDiv.classList.add('d-none');
+        errorDiv.classList.add('d-none');
+        docInfo.classList.add('d-none');
+        faceInfo.classList.add('d-none');
+        suggestionsDiv.classList.add('d-none');
+        suggestionList.innerHTML = '';
+      }
+
+      function showStatus(msg) { statusText.textContent = msg; statusDiv.classList.remove('d-none'); }
+      function hideStatus() { statusDiv.classList.add('d-none'); }
+      function showResult(msg) { resultText.textContent = msg; resultDiv.classList.remove('d-none'); errorDiv.classList.add('d-none'); }
+      function showError(msg) { errorText.textContent = msg; errorDiv.classList.remove('d-none'); resultDiv.classList.add('d-none'); }
+    })();
+  </script>
+
+  <style>
+    .ocr-dropzone { transition: all 0.2s; }
+    .ocr-dropzone:hover { border-color: #2F5233 !important; background: rgba(47,82,51,0.05); }
+    .form-control.is-valid, .form-select.is-valid { border-color: #198754; box-shadow: 0 0 0 0.15rem rgba(25,135,84,0.15); }
+    .ocr-logo-sm { flex-shrink: 0; }
+    .suggestion-card { transition: all 0.2s; }
+    .suggestion-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  </style>
+</AdminLayout>

@@ -1,0 +1,73 @@
+---
+import AdminLayout from '../layouts/AdminLayout.astro';
+---
+<AdminLayout title="सेटिङ" activePage="settings">
+  <div class="mb-4">
+    <h5 class="mb-1">सेटिङ</h5>
+    <p class="text-muted mb-0 small">प्रणाली र प्रोफाइल सेटिङ</p>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white"><h6 class="mb-0">प्रोफाइल</h6></div>
+        <div class="card-body">
+          <form>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">नाम</label>
+                <input type="text" class="form-control" value="एडमिन उपयोगकर्ता" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">इमेल</label>
+                <input type="email" class="form-control" value="admin@krishi.gov.np" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">पद</label>
+                <input type="text" class="form-control" value="जिल्ला कृषि अधिकृत" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">फोन</label>
+                <input type="tel" class="form-control" value="01-XXXXXXX" />
+              </div>
+            </div>
+            <button type="submit" class="btn btn-success mt-3"><i class="bi bi-check-circle me-1"></i> सेभ गर्नुहोस्</button>
+          </form>
+        </div>
+      </div>
+      <div class="card shadow-sm">
+        <div class="card-header bg-white"><h6 class="mb-0">प्रणाली सेटिङ</h6></div>
+        <div class="card-body">
+          <form>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">भाषा</label>
+                <select class="form-select">
+                  <option selected>नेपाली</option>
+                  <option>English</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">समय क्षेत्र</label>
+                <select class="form-select">
+                  <option selected>NPT (UTC+5:45)</option>
+                </select>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-success mt-3"><i class="bi bi-check-circle me-1"></i> सेभ गर्नुहोस्</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white"><h6 class="mb-0">प्रणाली जानकारी</h6></div>
+        <div class="card-body">
+          <div class="mb-2"><small class="text-muted">संस्करण</small><br><span>कृषि सेवा v0.1.0</span></div>
+          <div class="mb-2"><small class="text-muted">Backend</small><br><span>FastAPI + LangChain</span></div>
+          <div class="mb-2"><small class="text-muted">Frontend</small><br><span>Astro + Bootstrap 5</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</AdminLayout>

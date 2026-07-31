@@ -1,0 +1,166 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+<AdminLayout title="किसान व्यवस्थापन" activePage="farmer">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h5 class="mb-1">किसान व्यवस्थापन</h5>
+      <p class="text-muted mb-0 small">सबै दर्ता भएका किसानहरूको सूची</p>
+    </div>
+    <a href="/farmer/register" class="btn btn-success">
+      <i class="bi bi-person-plus me-1"></i> नयाँ किसान दर्ता
+    </a>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <input type="text" class="form-control" placeholder="नाम खोज्नुहोस्..." />
+        </div>
+        <div class="col-md-3">
+          <select class="form-select">
+            <option value="">सबै जिल्ला</option>
+            <option>काठमाडौं</option>
+            <option>ललितपुर</option>
+            <option>भक्तपुर</option>
+            <option>चितवन</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select">
+            <option value="">सबै बाली</option>
+            <option>धान</option>
+            <option>मकै</option>
+            <option>गोलभेडा</option>
+            <option>आलु</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-outline-secondary w-100"><i class="bi bi-search"></i> खोज्नुहोस्</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th><input type="checkbox" class="form-check-input" /></th>
+              <th>नाम</th>
+              <th>संपर्क</th>
+              <th>जिल्ला</th>
+              <th>बाली</th>
+              <th>जमिन (विगा)</th>
+              <th>दर्ता मिति</th>
+              <th>स्थिति</th>
+              <th>कार्य</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox" class="form-check-input" /></td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="bg-success bg-opacity-10 rounded-circle p-2"><i class="bi bi-person text-success"></i></div>
+                  <div>
+                    <p class="mb-0 fw-semibold">राम बहादुर श्रेष्ठ</p>
+                    <small class="text-muted">ID: FRM-001</small>
+                  </div>
+                </div>
+              </td>
+              <td>9841XXXXXX</td>
+              <td>काठमाडौं</td>
+              <td><span class="badge bg-success">धान</span></td>
+              <td>१५</td>
+              <td>२०८२-०३-१५</td>
+              <td><span class="badge bg-success">सक्रिय</span></td>
+              <td>
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-light" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button>
+                  <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="/farmer/records"><i class="bi bi-eye me-2"></i>हेर्नुहोस्</a></li>
+                    <li><a class="dropdown-item" href="#"><i class="bi bi-pencil me-2"></i>सम्पादन</a></li>
+                    <li><hr class="dropdown-divider" /></li>
+                    <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>मेटाउनुहोस्</a></li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="form-check-input" /></td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="bg-primary bg-opacity-10 rounded-circle p-2"><i class="bi bi-person text-primary"></i></div>
+                  <div>
+                    <p class="mb-0 fw-semibold">सीता देवी पौडेल</p>
+                    <small class="text-muted">ID: FRM-002</small>
+                  </div>
+                </div>
+              </td>
+              <td>9851XXXXXX</td>
+              <td>ललितपुर</td>
+              <td><span class="badge bg-info">मकै</span></td>
+              <td>८</td>
+              <td>२०८२-०३-१२</td>
+              <td><span class="badge bg-success">सक्रिय</span></td>
+              <td>
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-light" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button>
+                  <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="/farmer/records"><i class="bi bi-eye me-2"></i>हेर्नुहोस्</a></li>
+                    <li><a class="dropdown-item" href="#"><i class="bi bi-pencil me-2"></i>सम्पादन</a></li>
+                    <li><hr class="dropdown-divider" /></li>
+                    <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>मेटाउनुहोस्</a></li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="form-check-input" /></td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="bg-warning bg-opacity-10 rounded-circle p-2"><i class="bi bi-person text-warning"></i></div>
+                  <div>
+                    <p class="mb-0 fw-semibold">हरि प्रसाद गुरुङ</p>
+                    <small class="text-muted">ID: FRM-003</small>
+                  </div>
+                </div>
+              </td>
+              <td>9861XXXXXX</td>
+              <td>चितवन</td>
+              <td><span class="badge bg-warning text-dark">गोलभेडा</span></td>
+              <td>१२</td>
+              <td>२०८२-०३-१०</td>
+              <td><span class="badge bg-warning text-dark">प्रक्रियामा</span></td>
+              <td>
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-light" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button>
+                  <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="/farmer/records"><i class="bi bi-eye me-2"></i>हेर्नुहोस्</a></li>
+                    <li><a class="dropdown-item" href="#"><i class="bi bi-pencil me-2"></i>सम्पादन</a></li>
+                    <li><hr class="dropdown-divider" /></li>
+                    <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>मेटाउनुहोस्</a></li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+      <small class="text-muted">३ मध्ये १-३ देखाइँदैछ</small>
+      <nav>
+        <ul class="pagination pagination-sm mb-0">
+          <li class="page-item disabled"><a class="page-link" href="#">अघिल्लो</a></li>
+          <li class="page-item active"><a class="page-link" href="#">१</a></li>
+          <li class="page-item"><a class="page-link" href="#">अर्को</a></li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</AdminLayout>
