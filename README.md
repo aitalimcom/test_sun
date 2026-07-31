@@ -1,6 +1,6 @@
-# KrishiMitra (कृषिमित्र) — Multi-Agent Agricultural Ecosystem
+# Krishi Sewa (कृषि सेवा) — Government Agriculture Admin Panel
 
-KrishiMitra is a bilingual (Nepali/English), multimodal, multi-agent AI system designed to empower smallholder farmers in Nepal. It combines sensor telemetry (IoT), real-time weather forecasting, mandi market pricing, local crop directories (RAG), and automatic document OCR (citizenship card parsing) into a single system, paired with a government administration dashboard.
+Krishi Sewa is a bilingual (Nepali/English) government agriculture administration system with IoT monitoring, powered by Gemma 4 AI agents. It combines IoT device management, sensor telemetry, OCR-based farmer registration, and a multi-agent chat system into a single admin panel.
 
 ---
 
@@ -8,118 +8,175 @@ KrishiMitra is a bilingual (Nepali/English), multimodal, multi-agent AI system d
 
 ```text
 hackathon/
-├── backend/                # FastAPI application & Multi-Agent orchestration
-│   ├── agents/             # 15 specialized agents + supervisor + output synthesizer
-│   ├── core/               # State schemas, LangGraph configs, Multimodal preprocessors
-│   ├── db/                 # File-system database CRUD wrappers
-│   ├── data/               # Mock datasets & seed scripts (NPK, weather, market, wiki)
-│   ├── routes/             # API routing (chat, ocr, doctor, market, weather, iot, etc.)
-│   ├── services/           # External service wrappers (ChromaDB RAG, DuckDuckGo search)
-│   ├── config.py           # App settings (Pydantic Settings v2)
-│   ├── cli.py              # Developer workflow CLI
-│   └── requirements.txt    # Python dependencies
+├── backend/                    # FastAPI application
+│   ├── agents/                 # AI agents (Gemma 4 via OpenRouter)
+│   │   ├── iot_device/         # Agent 1: Add-device configuration
+│   │   ├── iot_control/        # Agent 2: Device control & scheduling
+│   │   ├── iot_monitor/        # Agent 3: Threshold monitoring & alerts
+│   │   └── ocr/                # Citizenship OCR (vision)
+│   ├── core/
+│   │   └── cron.py             # Background cron scheduler
+│   ├── db/
+│   │   └── iot_db.py           # CSV-based IoT database layer
+│   ├── data/
+│   │   └── iot_defaults.py     # Sensor/actuator type definitions
+│   ├── models/
+│   │   └── iot.py              # Pydantic models for IoT API
+│   ├── routes/
+│   │   ├── iot.py              # IoT REST API (devices, telemetry, alerts)
+│   │   ├── iot_chat.py         # Chat endpoints for both agents
+│   │   └── iot_cron.py         # Cron job management API
+│   ├── config.py               # App settings
+│   └── main.py                 # FastAPI entry point
 │
-├── frontend/               # Astro 5 + Bootstrap 5 Admin Panel
-│   ├── src/
-│   │   ├── pages/          # Astro pages (Dashboard, schemes, reports, registration)
-│   │   └── layouts/        # Layout frameworks (Bootstrap + HTML wrapper templates)
-│   └── package.json        # Frontend configuration
+├── frontend/                   # Astro 5 + Bootstrap 5.3 Admin Panel
+│   └── src/
+│       ├── layouts/
+│       │   └── AdminLayout.astro   # Sidebar with IoT accordion
+│       └── pages/
+│           ├── index.astro         # Dashboard
+│           ├── iot/
+│           │   ├── index.astro     # IoT dashboard (devices, chat, cron)
+│           │   └── [id].astro      # Device detail (gauges, controls, chat)
+│           └── farmer/             # Farmer management
 │
-└── database/               # Flat-file database collections (JSON files & CSVs)
-    ├── chat_history/       # Chat session history
-    ├── csv/                # Weather, price history & IoT telemetry logs
-    ├── diagnoses/          # Crop health diagnoses
-    ├── feedback/           # Audit reviews for government portals
-    ├── iot/                # Registered sensor details
-    ├── knowledge/          # Markdown documents (guides, disease facts)
-    └── market_prices/      # Kalimati crop prices
+└── database/
+    └── iot/                    # CSV-based IoT data
+        ├── devices.csv         # Registered devices
+        ├── telemetry_*.csv     # Per-device sensor readings
+        ├── alerts.csv          # Active/resolved alerts
+        └── schedules.csv       # Device schedules
 ```
 
 ---
 
-## 1. Backend Service (FastAPI + LangGraph)
-
-The backend is built around a custom **LangGraph** state machine executing a supervisor coordinator routing patterns across 15 specialized micro-agents.
+## 1. Backend (FastAPI)
 
 ### Configuration (`.env`)
-Create `backend/.env` (or set environment variables) using [`.env.example`](file:///.env.example):
 ```bash
-# default AI model provider: "ollama" or "google_ai_studio"
-DEFAULT_PROVIDER=ollama
-OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_DEFAULT_MODEL=gemma4:e2b
-
-# OCR extraction agent settings (OpenRouter)
-OPENROUTER_API_KEY=your-openrouter-key-here
+# OCR agent (OpenRouter)
+OPENROUTER_API_KEY=your-key
 OPENROUTER_MODEL=google/gemma-4-31b-it
 
-# Database root directory
+# Database
 DATABASE_ROOT=../database
+
+# Server
+BACKEND_HOST=0.0.0.0
+BACKEND_PORT=8000
 ```
 
-### Installation & Run
-1. Install Python 3.10+ dependencies:
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   ```
-2. Start the FastAPI development server:
-   ```bash
-   uvicorn main:app --reload --port 8000
-   ```
-
-### Developer CLI (`cli.py`)
-To improve developer experience, we created a terminal utility. Run it from `backend/`:
-- **Inspecting database status**:
-  ```bash
-  python cli.py status
-  ```
-- **Seeding mock files & RAG index**:
-  ```bash
-  python cli.py seed
-  ```
-- **Interactive multi-agent chat session**:
-  ```bash
-  python cli.py chat
-  ```
-- **Testing AI model loading**:
-  ```bash
-  python cli.py test-ai
-  ```
+### Run
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
+```
 
 ---
 
-## 2. Frontend Application (Astro 5)
-
-The frontend is an Astro v5 application styled with Bootstrap v5.
+## 2. Frontend (Astro 5 + Bootstrap 5.3)
 
 ### Key Pages
-- **ड्यासबोर्ड (Dashboard)** (`/`): Visualizes overall system metrics (registered farmers, active schemes, notifications, pending approvals).
-- **किसान दर्ता (Farmer Registration)** (`/farmer/register`):
-  - Includes **नागरिकता OCR (Citizenship OCR)** powered by **Gemma 4 Vision** via OpenRouter.
-  - Allows drag-and-drop or test image upload (Front/Back) to parse `first_name`, `last_name`, `citizenship_number`, `gender`, `dob`, `address`, and `father_name`.
-  - Autofills the form with high-confidence AI suggestions.
-- **योजनाहरू (Schemes)** (`/schemes`): Lists current subsidy schemes.
-- **अभिलेख (Records)** (`/farmer/records`): Inspects individual land size, crops type, and history.
+- `/` — Dashboard with stat cards and recent activity
+- `/iot` — IoT dashboard: device grid, add-device chat, cron agents, alerts
+- `/iot/{id}` — Device detail: live sensor gauges, actuator controls, control chat, schedules
+- `/farmer` — Farmer management
+- `/farmer/register` — Farmer registration with OCR
+- `/schemes`, `/reports`, `/settings` — Government admin pages
 
-### Installation & Run
-1. Install Bun (or npm) dependencies:
-   ```bash
-   cd frontend
-   bun install   # or npm install
-   ```
-2. Start the development server (proxies `/api` routes to backend on port 8000):
-   ```bash
-   bun run dev   # or npm run dev
-   ```
-   Open `http://localhost:4321` in your browser.
+### Run
+```bash
+cd frontend
+bun install
+bun run dev    # Opens http://localhost:4321
+```
 
 ---
 
-## 3. Database Layer (Flat-Files & Vector RAG)
+## 3. IoT Monitoring Station
 
-All data is stored in the `database/` root folder in clean flat-file structures. No complex SQL installation is needed.
+### Architecture
+Three Gemma 4 agents (via OpenRouter) power the IoT system:
 
-- **Flat-file JSON Collections**: Located under `database/chat_history/`, `database/diagnoses/`, `database/tasks/`, and `database/feedback/`. Saves structures as lightweight JSON objects.
-- **Tabular Databases**: Historical weather logs, mandi rates, and sensor telemetry values are structured in CSV sheets (`database/csv/`), queryable by the **Table Query Agent** using Pandas.
-- **RAG Knowledge Base**: Agricultural wiki directories (`database/knowledge/`) indexed into **ChromaDB** using HuggingFace sentence embeddings for semantic retrieval.
+| Agent | Endpoint | Purpose |
+|-------|----------|---------|
+| **iot_device** | `POST /api/iot/chat/add-device` | User describes device → generates config + ESP32 code |
+| **iot_control** | `POST /api/iot/chat/control/{id}` | Actuator commands, scheduling, summaries |
+| **iot_monitor** | Cron (hourly) | Threshold checks → alerts → tasks |
+
+### Sensors (float-priority)
+| Sensor | Unit | Pin | Range |
+|--------|------|-----|-------|
+| temperature | °C | A0 | -10 to 60 |
+| humidity | % | A1 | 0-100 |
+| co2 | ppm | A2 | 0-2000 |
+| moisture | % | A3 | 0-100 |
+| ph | pH | A4 | 0-14 |
+| light | lux | A5 | 0-100000 |
+| pressure | hPa | I2C | 300-1100 |
+| rainfall | mm | D8 | 0-500 |
+
+### Actuators
+| Actuator | Type | Pin | Control |
+|----------|------|-----|---------|
+| pump | toggle | D2 | on/off |
+| ac | range | D3 | 15-40°C desired temp |
+| light | toggle | D4 | on/off |
+| fan | toggle | D5 | on/off |
+| valve | toggle | D6 | open/close |
+| heater | range | D7 | 15-45°C |
+
+### API Endpoints
+```
+GET    /api/iot/devices                    — List all devices
+POST   /api/iot/devices                    — Register new device
+GET    /api/iot/devices/{id}               — Get device detail
+PUT    /api/iot/devices/{id}               — Update device
+DELETE /api/iot/devices/{id}               — Delete device
+
+GET    /api/iot/device/{id}/telemetry      — Get telemetry history
+POST   /api/iot/device/{id}/telemetry      — Post new reading
+POST   /api/iot/device/{id}/sync           — Sync (generates mock data)
+GET    /api/iot/device/{id}/config         — Get device config
+POST   /api/iot/device/{id}/config         — Update config
+POST   /api/iot/device/{id}/action         — Trigger actuator
+
+GET    /api/iot/alerts                     — List alerts
+POST   /api/iot/alerts                     — Create alert
+POST   /api/iot/alerts/{id}/resolve        — Resolve alert
+
+GET    /api/iot/schedules                  — List schedules
+POST   /api/iot/schedules                  — Create schedule
+DELETE /api/iot/schedules/{id}             — Delete schedule
+
+POST   /api/iot/chat/add-device            — Add-device chat (Agent 1)
+POST   /api/iot/chat/control/{id}          — Control chat (Agent 2)
+POST   /api/iot/chat/control               — General control chat
+
+GET    /api/iot/cron/jobs                  — List cron jobs
+POST   /api/iot/cron/jobs/{name}/toggle    — Enable/disable job
+POST   /api/iot/cron/trigger/{name}        — Manual trigger
+
+GET    /api/iot/types/sensors              — Sensor type definitions
+GET    /api/iot/types/actuators            — Actuator type definitions
+GET    /api/iot/types/devices              — Device presets
+```
+
+### Cron Jobs
+| Job | Interval | Description |
+|-----|----------|-------------|
+| `iot_monitor` | 1 hour | Check all sensors against thresholds, generate alerts |
+| `weather_sync` | 30 seconds | Sync weather station telemetry (demo interval) |
+
+### CSV Database Format
+- `database/iot/devices.csv` — Device registry (device_id, name, type, location, sensors_json, actuators_json)
+- `database/iot/telemetry_{device_id}.csv` — Per-device readings (timestamp + float values)
+- `database/iot/alerts.csv` — Alert history (metric, value, threshold, severity)
+- `database/iot/schedules.csv` — Scheduled actions (cron_expr, action, params)
+
+### Default Device: Weather Station
+- Device ID: `weather-001`
+- Sensors: temperature, humidity, co2
+- Auto-syncs every 30 seconds with mock data
+- Sync button on dashboard for manual trigger
