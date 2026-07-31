@@ -1,0 +1,383 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="RAG ज्ञान कोष व्यवस्थापन" activePage="admin-rag">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h4 class="mb-1"><i class="bi bi-journal-richtext text-success me-2"></i>RAG ज्ञान कोष प्रबन्धक</h4>
+      <p class="text-muted small mb-0">दस्तावेज तथा तस्विर प्रशोधन, प्रिती फन्ट रूपान्तरण, कृषि प्रासंगिकता जाँच र द्विभाषीय चङ्क व्यवस्थापन</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-success" id="reindexRagBtn">
+        <i class="bi bi-arrow-repeat me-1"></i> RAG भेक्टर इन्डेक्स पुन:निर्माण (Reindex)
+      </button>
+      <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#uploadDocModal">
+        <i class="bi bi-cloud-arrow-up me-1"></i> नयाँ दस्तावेज / तस्विर अपलोड
+      </button>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <ul class="nav nav-tabs mb-4" id="ragTabs" role="tablist">
+    <li class="nav-item">
+      <button class="nav-link active" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending-panel">
+        <i class="bi bi-hourglass-split me-1"></i> पेन्डिङ स्क्र्याप स्रोतहरू (SQLite Staging)
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" id="docs-tab" data-bs-toggle="tab" data-bs-target="#docs-panel">
+        <i class="bi bi-file-text me-1"></i> इन्जेस्ट भैसकेका ज्ञान चङ्कहरू (Knowledge Base)
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" id="gallery-tab" data-bs-toggle="tab" data-bs-target="#gallery-panel">
+        <i class="bi bi-images me-1"></i> चित्र ग्यालरी (Crop Disease Gallery)
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content" id="ragTabContent">
+    <!-- Panel 1: Pending SQLite Staged Scraped Documents -->
+    <div class="tab-pane fade show active" id="pending-panel">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+          <h6 class="mb-0 fw-bold text-dark">
+            <i class="bi bi-database me-2 text-primary"></i>वेब स्क्र्यापर द्वारा प्राप्त पेन्डिङ दस्तावेजहरू (SQLite Staging DB)
+          </h6>
+          <span class="badge bg-primary" id="pending-count-badge">० फाईलहरू</span>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light text-secondary small">
+                <tr>
+                  <th class="ps-4">शीर्षक / तस्विर पूर्वावलोकन (Preview & URL)</th>
+                  <th>प्रकार (Type)</th>
+                  <th>साइज</th>
+                  <th>स्थिति (Status)</th>
+                  <th class="text-end pe-4">कार्य (Actions)</th>
+                </tr>
+              </thead>
+              <tbody id="pending-table-body">
+                <tr>
+                  <td colspan="5" class="text-center py-4 text-muted">
+                    <div class="spinner-border spinner-border-sm text-success me-2"></div>लोड हुँदैछ...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel 2: Ingested Knowledge Base Chunks -->
+    <div class="tab-pane fade" id="docs-panel">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+          <h6 class="mb-0 fw-bold text-dark">
+            <i class="bi bi-check-circle me-2 text-success"></i>RAG ज्ञान चङ्कहरू (Hybrid Search Indexed)
+          </h6>
+          <span class="badge bg-success" id="chunk-count-badge">४ चङ्कहरू</span>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light text-secondary small">
+                <tr>
+                  <th class="ps-4">शीर्षक / स्रोत</th>
+                  <th>श्रेणी</th>
+                  <th>मोडेल / भाषा</th>
+                  <th>स्थिति</th>
+                  <th class="text-end pe-4">कार्य</th>
+                </tr>
+              </thead>
+              <tbody id="chunks-table-body">
+                <tr>
+                  <td class="ps-4">
+                    <strong>आलुको डढुवा रोग निर्देशिका (Potato Late Blight)</strong>
+                    <small class="d-block text-muted">diseases/potato_late_blight.md</small>
+                  </td>
+                  <td><span class="badge bg-danger">रोग</span></td>
+                  <td><small>Gemma 4 · द्विभाषीय</small></td>
+                  <td><span class="badge bg-success">इन्डेक्स भएको</span></td>
+                  <td class="text-end pe-4">
+                    <span class="badge bg-light text-dark border">सक्रिय</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="ps-4">
+                    <strong>धान ब्लास्ट रोग नियन्त्रण (Rice Blast Control)</strong>
+                    <small class="d-block text-muted">diseases/rice_blast.md</small>
+                  </td>
+                  <td><span class="badge bg-danger">रोग</span></td>
+                  <td><small>Gemma 4 · द्विभाषीय</small></td>
+                  <td><span class="badge bg-success">इन्डेक्स भएको</span></td>
+                  <td class="text-end pe-4">
+                    <span class="badge bg-light text-dark border">सक्रिय</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel 3: Crop Disease Image Gallery -->
+    <div class="tab-pane fade" id="gallery-panel">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+          <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-images me-2 text-info"></i>कृषि चित्र ग्यालरी कोष</h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-3" id="gallery-grid">
+            <div class="col-md-4">
+              <div class="card h-100 border shadow-none">
+                <div class="card-body text-center p-4">
+                  <i class="bi bi-file-earmark-image fs-1 text-muted d-block mb-2"></i>
+                  <h6>तस्विर नमुना १</h6>
+                  <small class="text-muted d-block mb-2">आलु डढुवा रोगको लक्षण</small>
+                  <span class="badge bg-info-subtle text-info border">ग्यालरी इन्डेक्स</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Gemma 4 Document Inspection & Ingestion -->
+  <div class="modal fade" id="inspectModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header bg-primary text-white py-3">
+          <h5 class="modal-title fs-6 fw-bold mb-0" id="inspectModalTitle">
+            <i class="bi bi-cpu me-2"></i>Gemma 4 AI दस्तावेज निरीक्षण तथा प्रशोधन
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div id="inspectLoading" class="text-center py-5">
+            <div class="spinner-border text-primary mb-2"></div>
+            <p class="text-muted small">Gemma 4 ले दस्तावेजको समीक्षा, प्रिती फन्ट रूपान्तरण र कृषि प्रासंगिकता जाँच गर्दैछ...</p>
+          </div>
+          <div id="inspectContent" style="display: none;">
+            
+            <!-- Image Visual Preview (if image asset) -->
+            <div id="modal-image-preview-container" class="mb-3 text-center p-3 bg-light rounded border" style="display: none;">
+              <small class="text-muted d-block mb-2 font-monospace fw-semibold"><i class="bi bi-eye me-1"></i>तस्विर पूर्वावलोकन (Scraped Image Asset Preview)</small>
+              <img id="modal-image-preview" src="" class="img-fluid rounded border shadow-sm" style="max-height: 260px; object-fit: contain;" alt="Scraped Image Preview" />
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <small class="text-muted d-block">दस्तावेज ID:</small>
+                <strong class="font-monospace text-dark" id="modal-doc-id">-</strong>
+              </div>
+              <div class="col-md-6">
+                <small class="text-muted d-block">फाईल प्रकार:</small>
+                <span class="badge bg-secondary" id="modal-file-type">PDF</span>
+              </div>
+              <div class="col-md-6">
+                <small class="text-muted d-block">प्रिती फन्ट स्थिति:</small>
+                <span id="modal-preeti-status">-</span>
+              </div>
+              <div class="col-md-6">
+                <small class="text-muted d-block">कृषि प्रासंगिकता (Gemma Guardrail):</small>
+                <span id="modal-agri-status">-</span>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">RAG श्रेणी (Target Category) *</label>
+              <select class="form-select form-select-sm" id="modal-category-select">
+                <option value="diseases">बाली रोग तथा किरा नियन्त्रण (Diseases)</option>
+                <option value="practices">कृषि प्रविधि तथा खेती प्रणाली (Practices)</option>
+                <option value="guides">निर्देशिका तथा सरकारी सूचना (Guides)</option>
+                <option value="gallery">चित्र ग्यालरी (Visual Crop Gallery)</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">दस्तावेज शीर्षक (Title)</label>
+              <input type="text" class="form-control form-control-sm" id="modal-title-input" />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Gemma 4 द्वारा रूपान्तरित देवनागरी सामग्री / OCR परिणाम (Preview & Edit)</label>
+              <textarea class="form-control font-monospace text-dark small" id="modal-text-preview" rows="8"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-light border" data-bs-dismiss="modal">रद्द गर्नुहोस्</button>
+          <button type="button" class="btn btn-success" id="confirmIngestBtn">
+            <i class="bi bi-check-circle me-1"></i> RAG मा इन्जेस्ट गर्नुहोस् (Approve & Ingest)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    let currentInspectDocId = null;
+    let currentInspectDocUrl = null;
+
+    async function loadPendingScraped() {
+      const tbody = document.getElementById('pending-table-body');
+      try {
+        const res = await fetch('/api/admin/rag/scraped?status=scraped');
+        if (res.ok) {
+          const data = await res.json();
+          const docs = data.documents || [];
+          document.getElementById('pending-count-badge').textContent = `${docs.length} फाईलहरू`;
+
+          if (docs.length === 0) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="5" class="text-center py-4 text-muted">
+                  <i class="bi bi-check2-circle fs-3 d-block mb-1 text-success"></i> कुनै पनि पेन्डिङ फाईल बाँकी छैन। स्क्र्यापर चलाएर नयाँ फाईलहरू प्राप्त गर्नुहोस्।
+                </td>
+              </tr>
+            `;
+            return;
+          }
+
+          tbody.innerHTML = docs.map(d => {
+            const isImg = d.file_type === 'image' || (d.url && d.url.match(/\.(jpg|jpeg|png|webp)$/i));
+            const pathDisplay = d.file_path || d.path || 'database/scraped/file';
+            const imgPreviewHtml = isImg 
+              ? `<img src="${d.url}" style="height: 48px; width: 72px; object-fit: cover;" class="rounded border me-3 bg-light shadow-sm" onerror="this.src='https://via.placeholder.com/72x48?text=Image'" alt="Preview" />`
+              : `<div class="bg-danger bg-opacity-10 text-danger rounded p-2 me-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;"><i class="bi bi-file-earmark-pdf fs-4"></i></div>`;
+
+            return `
+              <tr>
+                <td class="ps-4">
+                  <div class="d-flex align-items-center">
+                    ${imgPreviewHtml}
+                    <div>
+                      <strong class="text-dark d-block mb-1">${d.title || 'शीर्षकविहीन फाईल'}</strong>
+                      <small class="text-muted font-monospace d-block text-truncate" style="max-width: 320px;" title="${d.url || pathDisplay}">${d.url || pathDisplay}</small>
+                      <small class="text-secondary small font-monospace"><i class="bi bi-folder2 me-1"></i>Path: ${pathDisplay}</small>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="badge bg-${d.file_type === 'pdf' ? 'danger' : 'warning text-dark'}">${(d.file_type || 'file').toUpperCase()}</span></td>
+                <td><small class="text-muted font-monospace">${((d.file_size_bytes || 0) / 1024).toFixed(1)} KB</small></td>
+                <td><span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>पेन्डिङ (Scraped)</span></td>
+                <td class="text-end pe-4">
+                  <button class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1 shadow-sm" onclick="inspectDocument('${d.id}', '${d.url || ''}')">
+                    <i class="bi bi-cpu"></i> Gemma 4 निरीक्षण
+                  </button>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      } catch (err) {
+        console.error("Error loading pending scraped documents:", err);
+      }
+    }
+
+    async function inspectDocument(docId, docUrl) {
+      currentInspectDocId = docId;
+      currentInspectDocUrl = docUrl;
+
+      const modalEl = document.getElementById('inspectModal');
+      const modal = new bootstrap.Modal(modalEl);
+      modal.show();
+
+      document.getElementById('inspectLoading').style.display = 'block';
+      document.getElementById('inspectContent').style.display = 'none';
+      document.getElementById('modal-image-preview-container').style.display = 'none';
+
+      try {
+        const res = await fetch(`/api/admin/rag/scraped/${docId}/inspect`, { method: 'POST' });
+        if (!res.ok) throw new Error("निरीक्षण त्रुटि");
+        const data = await res.json();
+
+        document.getElementById('modal-doc-id').textContent = data.doc_id;
+        document.getElementById('modal-file-type').textContent = data.file_type.toUpperCase();
+        document.getElementById('modal-preeti-status').innerHTML = data.is_preeti 
+          ? '<span class="badge bg-info">प्रिती फन्ट फेला पर्यो -> युनिकोडमा रूपान्तरित</span>' 
+          : '<span class="badge bg-light text-dark border">सामान्य देवनागरी/English</span>';
+        
+        document.getElementById('modal-agri-status').innerHTML = data.is_agriculture 
+          ? `<span class="badge bg-success">स्वीकृत: कृषि सम्बन्धी (${data.relevance_reason})</span>` 
+          : `<span class="badge bg-danger">अस्वीकृत: गैर-कृषि</span>`;
+
+        if (data.is_image || data.file_type === 'image') {
+          const imgContainer = document.getElementById('modal-image-preview-container');
+          const imgPreview = document.getElementById('modal-image-preview');
+          imgPreview.src = docUrl || data.filename || '';
+          imgContainer.style.display = 'block';
+        }
+
+        document.getElementById('modal-category-select').value = data.recommended_category || 'diseases';
+        document.getElementById('modal-title-input').value = data.filename;
+        document.getElementById('modal-text-preview').value = data.preview_text_converted || data.preview_text_raw;
+
+        document.getElementById('inspectLoading').style.display = 'none';
+        document.getElementById('inspectContent').style.display = 'block';
+      } catch (err) {
+        alert("निरीक्षण असफल: " + err.message);
+        modal.hide();
+      }
+    }
+
+    document.getElementById('confirmIngestBtn').addEventListener('click', async () => {
+      if (!currentInspectDocId) return;
+      const btn = document.getElementById('confirmIngestBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> इन्जेस्ट हुँदैछ...';
+
+      const title = document.getElementById('modal-title-input').value;
+      const category = document.getElementById('modal-category-select').value;
+      const converted_text = document.getElementById('modal-text-preview').value;
+
+      try {
+        const res = await fetch(`/api/admin/rag/scraped/${currentInspectDocId}/ingest`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ doc_id: currentInspectDocId, title, category, converted_text })
+        });
+        const result = await res.json();
+        alert(result.message || "सफलतापूर्वक RAG मा इन्जेस्ट भयो!");
+        
+        const modalEl = document.getElementById('inspectModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+
+        loadPendingScraped();
+      } catch (err) {
+        alert("इन्जेसन त्रुटि: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-circle me-1"></i> RAG मा इन्जेस्ट गर्नुहोस् (Approve & Ingest)';
+      }
+    });
+
+    document.getElementById('reindexRagBtn').addEventListener('click', async () => {
+      if (!confirm('के तपाईं RAG भेक्टर इन्डेक्स पुन:निर्माण गर्न चाहनुहुन्छ?')) return;
+      const btn = document.getElementById('reindexRagBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> इन्डेक्सिङ हुँदैछ...';
+      try {
+        const res = await fetch('/api/cms/knowledge/reindex', { method: 'POST' });
+        const data = await res.json();
+        alert(data.message || 'RAG भेक्टर इन्डेक्स सफलतापूर्वक पुन:निर्माण भयो!');
+      } catch (e) {
+        alert('इन्डेक्स पुन:निर्माणमा समस्या आयो: ' + e.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i> RAG भेक्टर इन्डेक्स पुन:निर्माण (Reindex)';
+      }
+    });
+
+    // Initial load
+    loadPendingScraped();
+  </script>
+</AdminLayout>

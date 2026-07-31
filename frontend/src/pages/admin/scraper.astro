@@ -1,0 +1,283 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="सरकारी वेब स्क्र्यापर" activePage="admin-scraper">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h4 class="mb-1"><i class="bi bi-diagram-3 text-success me-2"></i>सरकारी कृषि पोर्टल वेब स्क्र्यापर (Gov Scraper)</h4>
+      <p class="text-muted small mb-0">नेपाल सरकारका आधिकारिक कृषि मन्त्रालय तथा विभागबाट स्वतः PDF र चित्र सङ्कलन र RAG इन्जेसन</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-danger btn-sm d-none" id="btn-stop-scraper">
+        <i class="bi bi-stop-circle me-1"></i> स्क्र्यापिङ रोक्नुहोस्
+      </button>
+    </div>
+  </div>
+
+  <!-- Real-time Stats Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3 col-6">
+      <div class="card shadow-sm border-0 bg-primary bg-opacity-10">
+        <div class="card-body p-3">
+          <small class="text-primary fw-semibold d-block">खोजिएका वेब लिङ्कहरू</small>
+          <h3 class="mb-0 fw-bold text-primary" id="stat-visited">०</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="card shadow-sm border-0 bg-danger bg-opacity-10">
+        <div class="card-body p-3">
+          <small class="text-danger fw-semibold d-block">प्राप्त कृषि PDFs</small>
+          <h3 class="mb-0 fw-bold text-danger" id="stat-pdfs">०</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="card shadow-sm border-0 bg-warning bg-opacity-10">
+        <div class="card-body p-3">
+          <small class="text-warning fw-semibold d-block">सङ्कलित तस्विरहरू</small>
+          <h3 class="mb-0 fw-bold text-warning" id="stat-images">०</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="card shadow-sm border-0 bg-success bg-opacity-10">
+        <div class="card-body p-3">
+          <small class="text-success fw-semibold d-block">इन्जेस्ट स्थिति</small>
+          <h5 class="mb-0 fw-bold text-success mt-1" id="stat-status">तयार (Ready)</h5>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Controls Panel -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-success text-white py-3">
+          <h6 class="mb-0"><i class="bi bi-sliders me-2"></i>स्क्र्यापर नियन्त्रण तथा डोमेन चयन</h6>
+        </div>
+        <div class="card-body">
+          <form id="scraper-form">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">मुख्य लक्ष्य डोमेन (Seed Domain)</label>
+              <select class="form-select border-success" id="seed-select">
+                <option value="https://moald.gov.np" selected>moald.gov.np (कृषि तथा पशुपन्छी मन्त्रालय)</option>
+                <option value="https://doanepal.gov.np">doanepal.gov.np (कृषि विभाग)</option>
+                <option value="https://pmamp.gov.np">pmamp.gov.np (PMAMP परियोजना)</option>
+                <option value="https://aitc.gov.np">aitc.gov.np (कृषि सूचना केन्द्र)</option>
+                <option value="https://doad.bagamati.gov.np">doad.bagamati.gov.np (बागमती प्रदेश कृषि)</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">अधिकतम सङ्कलन फाईल सीमा</label>
+              <input type="number" class="form-control" id="max-files-input" value="5" min="1" max="20" />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold d-block">अनुमति प्राप्त डोमेन फिल्टर</label>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="dom-gov" checked disabled />
+                <label class="form-check-label small" for="dom-gov">.gov.np (सरकारी पोर्टलहरू)</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="dom-edu" checked disabled />
+                <label class="form-check-label small" for="dom-edu">.edu.np (कृषि विश्वविद्यालय AFU/TU)</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="dom-org" checked disabled />
+                <label class="form-check-label small" for="dom-org">.org.np (कृषि संस्था NEKSAP/CEAPRED)</label>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-success w-100 py-2 fw-semibold" id="btn-start-scrape">
+              <i class="bi bi-play-circle me-1"></i> स्क्र्यापिङ सुरु गर्नुहोस् (Start Scrape)
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Live Terminal Log Box -->
+      <div class="card shadow-sm border-0 bg-dark text-white">
+        <div class="card-header bg-secondary bg-opacity-20 text-white d-flex justify-content-between align-items-center py-2">
+          <small class="fw-bold font-monospace"><i class="bi bi-terminal me-1"></i> स्क्र्यापर प्रत्यक्ष लग (Live Logs)</small>
+          <span class="badge bg-success" style="font-size: 0.65rem;">ACTIVE</span>
+        </div>
+        <div class="card-body p-2 font-monospace small" id="terminal-logs" style="height: 180px; overflow-y: auto; background: #0f172a; color: #38bdf8;">
+          <div>[00:00:00] ⚙️ GovScraper Engine Ready.</div>
+          <div>[00:00:00] 🌐 Allowed domains: .gov.np, .edu.np, .org.np</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scraped Results & Actions Panel -->
+    <div class="col-lg-8">
+      <!-- Loading Bar -->
+      <div id="scrape-loading-bar" class="d-none mb-3">
+        <div class="d-flex justify-content-between small text-muted mb-1">
+          <span>वेबसाइट स्क्र्यापिङ र फाईल सङ्कलन हुँदैछ...</span>
+          <span id="progress-percent">६०%</span>
+        </div>
+        <div class="progress" style="height: 8px;">
+          <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" id="progress-bar-inner" style="width: 60%"></div>
+        </div>
+      </div>
+
+      <!-- Scraped Results Table Card -->
+      <div id="scrape-results-card" class="card shadow-sm border-0 d-none">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3 border-bottom">
+          <h6 class="mb-0 text-success fw-bold"><i class="bi bi-folder-check me-2"></i>सङ्कलित कृषि फाईलहरू तथा RAG इन्जेसन</h6>
+          <span class="badge bg-success" id="download-count-badge">० फाईलहरू</span>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>प्रकार</th>
+                  <th>स्रोत URL</th>
+                  <th>स्थानीय मार्ग (Path)</th>
+                  <th>RAG कार्य</th>
+                </tr>
+              </thead>
+              <tbody id="scraped-files-table">
+                <!-- Dynamic Rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Placeholder Card -->
+      <div id="scrape-placeholder" class="card shadow-sm border-0 p-5 text-center bg-light">
+        <i class="bi bi-diagram-3 text-success display-4 mb-3"></i>
+        <h6 class="fw-bold">सरकारी वेब स्क्र्यापर सञ्चालन गरिएको छैन</h6>
+        <p class="text-muted small mb-0">बायाँ नियन्त्रण कक्षबाट लक्ष्य सरकारी वेबसाइट चयन गरी 'स्क्र्यापिङ सुरु गर्नुहोस्' थिच्नुहोस्।</p>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('scraper-form');
+      const loadingBar = document.getElementById('scrape-loading-bar');
+      const resultsCard = document.getElementById('scrape-results-card');
+      const placeholder = document.getElementById('scrape-placeholder');
+      const filesTable = document.getElementById('scraped-files-table');
+      const countBadge = document.getElementById('download-count-badge');
+      const terminalLogs = document.getElementById('terminal-logs');
+
+      const statVisited = document.getElementById('stat-visited');
+      const statPdfs = document.getElementById('stat-pdfs');
+      const statImages = document.getElementById('stat-images');
+      const statStatus = document.getElementById('stat-status');
+      const btnStop = document.getElementById('btn-stop-scraper');
+
+      function addLog(msg) {
+        const time = new Date().toLocaleTimeString();
+        const div = document.createElement('div');
+        div.textContent = `[${time}] ${msg}`;
+        terminalLogs.appendChild(div);
+        terminalLogs.scrollTop = terminalLogs.scrollHeight;
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const url = document.getElementById('seed-select').value;
+        const max_files = parseInt(document.getElementById('max-files-input').value) || 5;
+
+        placeholder.classList.add('d-none');
+        resultsCard.classList.add('d-none');
+        loadingBar.classList.remove('d-none');
+        btnStop.classList.remove('d-none');
+
+        statStatus.textContent = 'चल्दैछ (Running)';
+        statStatus.className = 'mb-0 fw-bold text-warning mt-1';
+        addLog(`🚀 Starting live scrape for seed: ${url}`);
+        addLog(`📊 Target limit: ${max_files} files`);
+
+        try {
+          const resp = await fetch('/api/admin/rag/scrape', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url, max_files }),
+          });
+
+          const data = await resp.json();
+          loadingBar.classList.add('d-none');
+          btnStop.classList.add('d-none');
+          resultsCard.classList.remove('d-none');
+
+          statStatus.textContent = 'सम्पन्न (Completed)';
+          statStatus.className = 'mb-0 fw-bold text-success mt-1';
+
+          const pdfs = data.results.pdfs || [];
+          const images = data.results.images || [];
+
+          statVisited.textContent = data.results.urls_visited || 1;
+          statPdfs.textContent = pdfs.length;
+          statImages.textContent = images.length;
+
+          addLog(`✅ Scrape finished! Downloaded ${pdfs.length} PDFs and ${images.length} images.`);
+          countBadge.textContent = `${pdfs.length + images.length} फाईलहरू`;
+
+          filesTable.innerHTML = '';
+
+          pdfs.forEach((pdf, idx) => {
+            const tr = document.createElement('tr');
+            const pathStr = pdf.file_path || pdf.path || 'scraped/pdf/document.pdf';
+            tr.innerHTML = `
+              <td><span class="badge bg-danger"><i class="bi bi-file-pdf me-1"></i>PDF Document</span></td>
+              <td><small class="text-truncate d-inline-block" style="max-width: 220px;" title="${pdf.url}">${pdf.url}</small></td>
+              <td><small class="text-muted font-monospace">${pathStr}</small></td>
+              <td>
+                <a href="/admin/rag" class="btn btn-sm btn-success">
+                  <i class="bi bi-magic me-1"></i> RAG मा निरीक्षण / इन्जेस्ट गर्नुहोस्
+                </a>
+              </td>
+            `;
+            filesTable.appendChild(tr);
+          });
+
+          images.forEach((img, idx) => {
+            const tr = document.createElement('tr');
+            const pathStr = img.file_path || img.path || 'scraped/images/image.png';
+            tr.innerHTML = `
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <img src="${img.url}" style="height: 42px; width: 64px; object-fit: cover;" class="rounded border bg-light" onerror="this.src='https://via.placeholder.com/64x42?text=Image'" alt="Preview" />
+                  <span class="badge bg-warning text-dark">Image Asset</span>
+                </div>
+              </td>
+              <td><small class="text-truncate d-inline-block" style="max-width: 220px;" title="${img.url}">${img.url}</small></td>
+              <td><small class="text-muted font-monospace">${pathStr}</small></td>
+              <td>
+                <a href="/admin/rag" class="btn btn-sm btn-outline-warning">
+                  <i class="bi bi-images me-1"></i> ग्यालरी / RAG मा राख्नुहोस्
+                </a>
+              </td>
+            `;
+            filesTable.appendChild(tr);
+          });
+
+        } catch (err) {
+          addLog(`❌ Scraping error: ${err.message}`);
+          alert('स्क्र्यापिङमा समस्या भयो: ' + err.message);
+          loadingBar.classList.add('d-none');
+          btnStop.classList.add('d-none');
+          statStatus.textContent = 'त्रुटि (Failed)';
+          statStatus.className = 'mb-0 fw-bold text-danger mt-1';
+        }
+      });
+
+      btnStop.addEventListener('click', () => {
+        addLog('🛑 Stop signal sent by admin.');
+        loadingBar.classList.add('d-none');
+        btnStop.classList.add('d-none');
+        statStatus.textContent = 'रोकिएको (Stopped)';
+      });
+    });
+  </script>
+</AdminLayout>

@@ -1,73 +1,110 @@
 ---
 import AdminLayout from '../layouts/AdminLayout.astro';
 ---
-<AdminLayout title="सेटिङ" activePage="settings">
+
+<AdminLayout title="प्रणाली तथा पहुँचयोग्यता सेटिङ (Settings & Accessibility)" activePage="settings">
   <div class="mb-4">
-    <h5 class="mb-1">सेटिङ</h5>
-    <p class="text-muted mb-0 small">प्रणाली र प्रोफाइल सेटिङ</p>
+    <h4 class="mb-1 fw-bold text-success"><i class="bi bi-gear-fill me-2"></i>सेटिङ तथा पहुँचयोग्यता (Accessibility Settings)</h4>
+    <p class="text-muted mb-0 small">प्रणाली, प्रोफाइल, अक्षरको आकार र उच्च कन्ट्रास्ट सम्बन्धी सेटिङ</p>
   </div>
 
   <div class="row g-4">
     <div class="col-lg-8">
-      <div class="card shadow-sm mb-4">
-        <div class="card-header bg-white"><h6 class="mb-0">प्रोफाइल</h6></div>
-        <div class="card-body">
-          <form>
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label">नाम</label>
-                <input type="text" class="form-control" value="एडमिन उपयोगकर्ता" />
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">इमेल</label>
-                <input type="email" class="form-control" value="admin@krishi.gov.np" />
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">पद</label>
-                <input type="text" class="form-control" value="जिल्ला कृषि अधिकृत" />
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">फोन</label>
-                <input type="tel" class="form-control" value="01-XXXXXXX" />
+      <!-- Accessibility Settings Card -->
+      <div class="card shadow-sm border-0 rounded-4 mb-4">
+        <div class="card-header bg-white py-3">
+          <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-universal-access me-2 text-success"></i>पहुँचयोग्यता सेटिङ (Accessibility Settings)</h6>
+        </div>
+        <div class="card-body p-4">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">अक्षरको आकार (Font Size)</label>
+              <select class="form-select" id="fontSizeSelect" onchange="changeFontSize(this.value)">
+                <option value="normal" selected>सामान्य आकार (Normal 14px)</option>
+                <option value="large">ठूलो आकार (Large 18px)</option>
+                <option value="xlarge">अति ठूलो आकार (Extra Large 22px)</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">उच्च कन्ट्रास्ट मोड (High Contrast UI Mode)</label>
+              <div class="form-check form-switch mt-2">
+                <input class="form-check-input" type="checkbox" id="contrastToggle" onchange="toggleHighContrast(this.checked)" />
+                <label class="form-check-label small" for="contrastToggle">उच्च कन्ट्रास्ट चालु गर्नुहोस् (Enable High Contrast)</label>
               </div>
             </div>
-            <button type="submit" class="btn btn-success mt-3"><i class="bi bi-check-circle me-1"></i> सेभ गर्नुहोस्</button>
-          </form>
+          </div>
         </div>
       </div>
-      <div class="card shadow-sm">
-        <div class="card-header bg-white"><h6 class="mb-0">प्रणाली सेटिङ</h6></div>
-        <div class="card-body">
-          <form>
+
+      <!-- Profile Card -->
+      <div class="card shadow-sm border-0 rounded-4 mb-4">
+        <div class="card-header bg-white py-3"><h6 class="mb-0 fw-bold text-dark">प्रशासक प्रोफाइल</h6></div>
+        <div class="card-body p-4">
+          <form onsubmit="event.preventDefault(); alert('प्रोफाइल सेभ भयो!');">
             <div class="row g-3">
               <div class="col-md-6">
-                <label class="form-label">भाषा</label>
-                <select class="form-select">
-                  <option selected>नेपाली</option>
-                  <option>English</option>
-                </select>
+                <label class="form-label small fw-semibold">नाम</label>
+                <input type="text" class="form-control" value="कृषि अधिकृत रामबहादुर श्रेष्ठ" />
               </div>
               <div class="col-md-6">
-                <label class="form-label">समय क्षेत्र</label>
-                <select class="form-select">
-                  <option selected>NPT (UTC+5:45)</option>
-                </select>
+                <label class="form-label small fw-semibold">इमेल</label>
+                <input type="email" class="form-control" value="officer@krishi.gov.np" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">पद</label>
+                <input type="text" class="form-control" value="वरिष्ठ कृषि विकास अधिकृत" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">फोन</label>
+                <input type="tel" class="form-control" value="01-4225566" />
               </div>
             </div>
-            <button type="submit" class="btn btn-success mt-3"><i class="bi bi-check-circle me-1"></i> सेभ गर्नुहोस्</button>
+            <button type="submit" class="btn btn-success mt-3"><i class="bi bi-check-circle me-1"></i> सुरक्षित गर्नुहोस्</button>
           </form>
         </div>
       </div>
     </div>
+
     <div class="col-lg-4">
-      <div class="card shadow-sm">
-        <div class="card-header bg-white"><h6 class="mb-0">प्रणाली जानकारी</h6></div>
-        <div class="card-body">
-          <div class="mb-2"><small class="text-muted">संस्करण</small><br><span>कृषि सेवा v0.1.0</span></div>
-          <div class="mb-2"><small class="text-muted">Backend</small><br><span>FastAPI + LangChain</span></div>
-          <div class="mb-2"><small class="text-muted">Frontend</small><br><span>Astro + Bootstrap 5</span></div>
+      <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-header bg-white py-3"><h6 class="mb-0 fw-bold text-dark">प्रणाली विवरण</h6></div>
+        <div class="card-body p-4">
+          <div class="mb-3"><small class="text-muted d-block">संस्करण</small><span class="fw-bold text-success">कृषि सेवा v2.0.0</span></div>
+          <div class="mb-3"><small class="text-muted d-block">AI Model Provider</small><span class="fw-bold text-dark">OpenRouter (Gemma 4 31B IT)</span></div>
+          <div class="mb-3"><small class="text-muted d-block">Backend Engine</small><span>FastAPI + LangGraph + Cron</span></div>
+          <div class="mb-3"><small class="text-muted d-block">Frontend Engine</small><span>Astro 5 + Bootstrap 5.3</span></div>
         </div>
       </div>
     </div>
   </div>
+
+  <script is:inline>
+    function changeFontSize(size) {
+      if (size === 'large') document.body.style.fontSize = '18px';
+      else if (size === 'xlarge') document.body.style.fontSize = '22px';
+      else document.body.style.fontSize = '14px';
+      localStorage.setItem('pref_font_size', size);
+    }
+
+    function toggleHighContrast(enabled) {
+      if (enabled) {
+        document.body.classList.add('bg-dark', 'text-white');
+      } else {
+        document.body.classList.remove('bg-dark', 'text-white');
+      }
+      localStorage.setItem('pref_high_contrast', enabled ? 'true' : 'false');
+    }
+
+    // Restore preferences
+    const savedSize = localStorage.getItem('pref_font_size');
+    if (savedSize) {
+      document.getElementById('fontSizeSelect').value = savedSize;
+      changeFontSize(savedSize);
+    }
+    const savedContrast = localStorage.getItem('pref_high_contrast');
+    if (savedContrast === 'true') {
+      document.getElementById('contrastToggle').checked = true;
+      toggleHighContrast(true);
+    }
+  </script>
 </AdminLayout>

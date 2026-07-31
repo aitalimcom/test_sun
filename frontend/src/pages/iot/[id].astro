@@ -1,7 +1,19 @@
 ---
-export const prerender = false;
+export function getStaticPaths() {
+  return [
+    { params: { id: 'weather-001' } },
+    { params: { id: 'greenhouse-001' } },
+    { params: { id: 'irrigation-001' } },
+  ];
+}
 import AdminLayout from '../../layouts/AdminLayout.astro';
 ---
+<script is:inline>
+  const targetId = window.location.pathname.split('/iot/')[1]?.split('?')[0];
+  if (targetId && targetId !== 'device') {
+    window.location.replace(`/iot/device?id=${targetId}`);
+  }
+</script>
 <AdminLayout title="उपकरण विवरण" activePage="iot">
   <div class="mb-4">
     <a href="/iot" class="text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>फर्कनुहोस्</a>

@@ -1,0 +1,372 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="किसान सूची तथा अभिलेख व्यवस्थापन (Farmer CMS)" activePage="farmer">
+  <!-- Page Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+      <h4 class="mb-1 fw-bold text-success">
+        <i class="bi bi-people-fill me-2"></i>किसान सूची तथा अभिलेख व्यवस्थापन CMS
+      </h4>
+      <p class="text-muted small mb-0">
+        दर्ता भएका कृषकहरूको नागरिकता, जग्गाको क्षेत्रफल (रोपनी/बिघा), बाली विवरण तथा सम्पर्क जानकारी व्यवस्थापन
+      </p>
+    </div>
+    <button class="btn btn-success d-flex align-items-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#addFarmerModal">
+      <i class="bi bi-person-plus-fill"></i>
+      <span>नयाँ किसान दर्ता गर्नुहोस्</span>
+    </button>
+  </div>
+
+  <!-- Key Statistics Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm bg-white p-3 rounded-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="bg-success-subtle text-success p-3 rounded-circle fs-4 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+            <i class="bi bi-people"></i>
+          </div>
+          <div>
+            <span class="text-muted small d-block">जम्मा दर्ता कृषक</span>
+            <h4 class="mb-0 fw-bold text-dark" id="stat-total-farmers">१२</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm bg-white p-3 rounded-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="bg-primary-subtle text-primary p-3 rounded-circle fs-4 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+            <i class="bi bi-aspect-ratio"></i>
+          </div>
+          <div>
+            <span class="text-muted small d-block">जम्मा भू-क्षेत्र (रोपनी)</span>
+            <h4 class="mb-0 fw-bold text-dark" id="stat-total-ropani">६८.५</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm bg-white p-3 rounded-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="bg-warning-subtle text-warning p-3 rounded-circle fs-4 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+            <i class="bi bi-geo-alt"></i>
+          </div>
+          <div>
+            <span class="text-muted small d-block">सक्रिय जिल्लाहरू</span>
+            <h4 class="mb-0 fw-bold text-dark" id="stat-districts">८</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm bg-white p-3 rounded-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="bg-info-subtle text-info p-3 rounded-circle fs-4 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+            <i class="bi bi-flower1"></i>
+          </div>
+          <div>
+            <span class="text-muted small d-block">मुख्य बालीहरू</span>
+            <h4 class="mb-0 fw-bold text-dark">धान, आलु, मकै</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Farmers Data Table Section -->
+  <div class="card border-0 shadow-sm rounded-3">
+    <div class="card-header bg-white py-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <h6 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+        <i class="bi bi-table text-success"></i> दर्ता कृषक अभिलेख (Farmer Registry DB)
+      </h6>
+      <div class="d-flex gap-2">
+        <div class="input-group input-group-sm" style="max-width: 280px;">
+          <span class="input-group-text bg-light border-end-0"><i class="bi bi-search"></i></span>
+          <input type="text" id="farmerSearchInput" class="form-control bg-light border-start-0" placeholder="नाम, नागरिकता वा जिल्ला खोज्नुहोस्..." />
+        </div>
+        <button class="btn btn-sm btn-outline-secondary" id="refreshBtn" title="पुनःलोड गर्नुहोस्">
+          <i class="bi bi-arrow-clockwise"></i>
+        </button>
+      </div>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light text-secondary small">
+            <tr>
+              <th class="ps-4">कृषकको नाम / ID</th>
+              <th>नागरिकता नम्बर</th>
+              <th>ठेगाना (जिल्ला/पालिका/वडा)</th>
+              <th>सम्पर्क फोन</th>
+              <th>जग्गा क्षेत्रफल (रोपनी / बिघा)</th>
+              <th>मुख्य बालीहरू</th>
+              <th>स्थिति</th>
+              <th class="text-end pe-4">कार्य (Actions)</th>
+            </tr>
+          </thead>
+          <tbody id="farmersTableBody">
+            <!-- Dynamic data loaded via Javascript -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add New Farmer -->
+  <div class="modal fade" id="addFarmerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-header-title mb-0 fs-6 fw-bold">
+            <i class="bi bi-person-plus-fill me-2"></i>नयाँ किसान दर्ता फारम (New Farmer Registration)
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="addFarmerForm">
+          <div class="modal-body p-4">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">पूरा नाम (Full Name) *</label>
+                <input type="text" class="form-control" name="full_name" required placeholder="उदाहरण: रामबहादुर श्रेष्ठ" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">नागरिकता नम्बर (Citizenship No) *</label>
+                <input type="text" class="form-control" name="citizenship_no" required placeholder="उदाहरण: २७-०१-७९-१२३४५" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">सम्पर्क फोन नम्बर (Phone Number)</label>
+                <input type="tel" class="form-control" name="phone" placeholder="९८४१००००००" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">जिल्ला (District) *</label>
+                <input type="text" class="form-control" name="district" required placeholder="उदाहरण: चितवन" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">गाउँपालिका / नगरपालिका (Palika) *</label>
+                <input type="text" class="form-control" name="palika" required placeholder="उदाहरण: भरतपुर महानगरपालिका" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">वडा नम्बर (Ward No) *</label>
+                <input type="number" class="form-control" name="ward" min="1" max="35" required placeholder="१०" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">जग्गाको क्षेत्रफल (रोपनी मा)</label>
+                <input type="number" step="0.1" class="form-control" name="land_size_ropani" placeholder="५.५" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">जग्गाको क्षेत्रफल (बिघा मा)</label>
+                <input type="number" step="0.01" class="form-control" name="land_size_bigha" placeholder="०.४१" />
+              </div>
+              <div class="col-12">
+                <label class="form-label small fw-semibold">मुख्य बालीहरू (कमाले छुट्याउनुहोस्)</label>
+                <input type="text" class="form-control" name="crops_input" placeholder="धान, मकै, आलु, तरकारी" />
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-light border" data-bs-dismiss="modal">रद्द गर्नुहोस्</button>
+            <button type="submit" class="btn btn-success">
+              <i class="bi bi-check-circle me-1"></i> दर्ता गर्नुहोस् (Save)
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client-side Script -->
+  <script is:inline>
+    const API_BASE = 'http://127.0.0.1:8000/api/cms/farmers';
+
+    let allFarmers = [
+      {
+        id: "farmer_001",
+        full_name: "रामबहादुर श्रेष्ठ",
+        citizenship_no: "27-01-79-12345",
+        phone: "9841000000",
+        district: "चितवन",
+        palika: "भरतपुर महानगरपालिका",
+        ward: "10",
+        land_size_ropani: 8.5,
+        land_size_bigha: 0.64,
+        crops: ["धान", "मकै", "आलु"],
+        status: "active"
+      },
+      {
+        id: "farmer_002",
+        full_name: "सीतादेवी ढकाल",
+        citizenship_no: "18-02-75-09876",
+        phone: "9851112233",
+        district: "काभ्रेपलाञ्चोक",
+        palika: "पनौती नगरपालिका",
+        ward: "4",
+        land_size_ropani: 12.0,
+        land_size_bigha: 0.90,
+        crops: ["आलु", "गोलभेडा", "काँक्रो"],
+        status: "active"
+      },
+      {
+        id: "farmer_003",
+        full_name: "हरिप्रसाद नेपाल",
+        citizenship_no: "34-01-80-55443",
+        phone: "9808998877",
+        district: "झापा",
+        palika: "मेचीनगर नगरपालिका",
+        ward: "6",
+        land_size_ropani: 25.0,
+        land_size_bigha: 1.88,
+        crops: ["धान", "गहुँ", "चिया"],
+        status: "active"
+      }
+    ];
+
+    async function loadFarmers() {
+      try {
+        const res = await fetch(API_BASE);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.farmers && data.farmers.length > 0) {
+            allFarmers = data.farmers;
+          }
+        }
+      } catch (err) {
+        console.warn("Using initial local demo state:", err);
+      }
+      renderTable(allFarmers);
+      updateStats();
+    }
+
+    function renderTable(farmers) {
+      const tbody = document.getElementById('farmersTableBody');
+      if (!farmers || farmers.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="text-center py-4 text-muted">
+              <i class="bi bi-inbox fs-3 d-block mb-1"></i> कुनै किसानको विवरण भेटिएन।
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = farmers.map(f => `
+        <tr>
+          <td class="ps-4">
+            <strong class="text-dark d-block">${f.full_name || 'अज्ञात'}</strong>
+            <small class="text-muted font-monospace">${f.id}</small>
+          </td>
+          <td><span class="badge bg-light text-dark border">${f.citizenship_no || 'N/A'}</span></td>
+          <td>
+            <small class="d-block text-dark fw-semibold">${f.district || ''}</small>
+            <small class="text-muted">${f.palika || ''} - वडा ${f.ward || ''}</small>
+          </td>
+          <td><small class="text-secondary"><i class="bi bi-telephone me-1"></i>${f.phone || 'N/A'}</small></td>
+          <td>
+            <span class="badge bg-success-subtle text-success border border-success-subtle fw-semibold">
+              ${f.land_size_ropani || 0} रोपनी
+            </span>
+            <small class="text-muted ms-1">(${f.land_size_bigha || 0} बिघा)</small>
+          </td>
+          <td>
+            ${(f.crops || []).map(c => `<span class="badge bg-secondary-subtle text-secondary me-1 mb-1">${c}</span>`).join('')}
+          </td>
+          <td><span class="badge bg-success">सक्रिय (Active)</span></td>
+          <td class="text-end pe-4">
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteFarmer('${f.id}')" title="हटाउनुहोस्">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function updateStats() {
+      document.getElementById('stat-total-farmers').textContent = allFarmers.length;
+      const totalRopani = allFarmers.reduce((sum, f) => sum + (parseFloat(f.land_size_ropani) || 0), 0);
+      document.getElementById('stat-total-ropani').textContent = totalRopani.toFixed(1);
+      const districts = new Set(allFarmers.map(f => f.district).filter(Boolean));
+      document.getElementById('stat-districts').textContent = districts.size;
+    }
+
+    async function deleteFarmer(id) {
+      if (!confirm(`के तपाईं यो किसान (ID: ${id}) को अभिलेख हटाउन निश्चित हुनुहुन्छ?`)) return;
+      try {
+        const res = await fetch(`${API_BASE}/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+          allFarmers = allFarmers.filter(f => f.id !== id);
+          renderTable(allFarmers);
+          updateStats();
+        }
+      } catch (e) {
+        allFarmers = allFarmers.filter(f => f.id !== id);
+        renderTable(allFarmers);
+        updateStats();
+      }
+    }
+
+    document.getElementById('addFarmerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const formData = new FormData(form);
+      
+      const cropsStr = formData.get('crops_input') || '';
+      const cropsList = cropsStr.split(',').map(c => c.trim()).filter(Boolean);
+
+      const payload = {
+        full_name: formData.get('full_name'),
+        citizenship_no: formData.get('citizenship_no'),
+        phone: formData.get('phone'),
+        district: formData.get('district'),
+        palika: formData.get('palika'),
+        ward: formData.get('ward'),
+        land_size_ropani: parseFloat(formData.get('land_size_ropani')) || 0,
+        land_size_bigha: parseFloat(formData.get('land_size_bigha')) || 0,
+        crops: cropsList,
+      };
+
+      try {
+        const res = await fetch(API_BASE, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const result = await res.json();
+          allFarmers.unshift(result.farmer);
+        } else {
+          payload.id = 'farmer_' + Date.now();
+          allFarmers.unshift(payload);
+        }
+      } catch (err) {
+        payload.id = 'farmer_' + Date.now();
+        allFarmers.unshift(payload);
+      }
+
+      renderTable(allFarmers);
+      updateStats();
+
+      // Close modal
+      const modalEl = document.getElementById('addFarmerModal');
+      const modal = bootstrap.Modal.getInstance(modalEl);
+      if (modal) modal.hide();
+      form.reset();
+    });
+
+    document.getElementById('farmerSearchInput').addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      const filtered = allFarmers.filter(f => 
+        (f.full_name && f.full_name.toLowerCase().includes(q)) ||
+        (f.citizenship_no && f.citizenship_no.toLowerCase().includes(q)) ||
+        (f.district && f.district.toLowerCase().includes(q))
+      );
+      renderTable(filtered);
+    });
+
+    document.getElementById('refreshBtn').addEventListener('click', loadFarmers);
+
+    // Initial load
+    loadFarmers();
+  </script>
+</AdminLayout>

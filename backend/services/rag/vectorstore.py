@@ -27,7 +27,22 @@ class VectorstoreManager:
 
         try:
             import chromadb
-            from langchain_community.vectorstores import Chroma
+            Chroma = None
+            try:
+                from langchain_chroma import Chroma
+            except ImportError:
+                try:
+                    from langchain_community.vectorstores import Chroma
+                except (ImportError, AttributeError, ModuleNotFoundError):
+                    try:
+                        from langchain_community.vectorstores.chroma import Chroma
+                    except (ImportError, AttributeError, ModuleNotFoundError):
+                        Chroma = None
+
+            if Chroma is None:
+                logger.warning("Chroma vectorstore module not available in installed langchain version.")
+                return None
+
             from langchain_community.embeddings import HuggingFaceEmbeddings
 
             CHROMA_DIR.mkdir(parents=True, exist_ok=True)

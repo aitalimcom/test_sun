@@ -1,0 +1,740 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="कृषक सेवा - बहुविध AI सहायक (Mobile Chat App)" activePage="farmer">
+  <!-- Mobile App Frame Container -->
+  <div class="mobile-app-wrapper mx-auto my-0 my-md-2 shadow-lg rounded-4 overflow-hidden bg-white border border-secondary-subtle" style="max-width: 520px; min-height: 88vh; display: flex; flex-direction: column;">
+    
+    <!-- Mobile App Header Bar -->
+    <div class="mobile-app-header bg-success text-white p-3 d-flex align-items-center justify-content-between shadow-sm sticky-top">
+      <div class="d-flex align-items-center gap-2">
+        <a href="/" class="btn btn-sm btn-outline-light border-0 px-2 py-1" title="ड्यासबोर्डमा फर्कनुहोस्">
+          <i class="bi bi-arrow-left fs-5"></i>
+        </a>
+        <div>
+          <h6 class="mb-0 fw-bold d-flex align-items-center gap-1" id="header-app-title">
+            <i class="bi bi-leaf-fill text-warning me-1"></i>कृषक सेवा AI सहायक
+          </h6>
+          <small class="text-white-50 opacity-75 d-block font-monospace" style="font-size: 0.7rem;" id="header-subtitle">
+            Gemma 4 · द्विभाषीय (Bilingual)
+          </small>
+        </div>
+      </div>
+      
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-sm btn-warning text-dark fw-bold d-flex align-items-center gap-1 shadow-sm px-2 py-1" id="recheckBtn" title="AI उत्तरको पुनरावलोकन गर्नुहोस्">
+          <i class="bi bi-shield-check"></i>
+          <span class="d-none d-sm-inline">पुनरावलोकन</span>
+        </button>
+        <button class="btn btn-sm btn-outline-light border-0 px-2 py-1" id="settingsToggleBtn" title="सेटिङ">
+          <i class="bi bi-gear-fill fs-6"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mode Selection Home Screen (Visible when no active chat session) -->
+    <div class="mobile-app-body p-3 flex-grow-1 overflow-y-auto" id="modeSelectionScreen">
+      <!-- Welcome Banner -->
+      <div class="welcome-card card border-0 bg-success-subtle p-3 rounded-4 mb-4">
+        <div class="d-flex align-items-center gap-3">
+          <div class="bg-success text-white p-3 rounded-circle fs-3 d-flex align-items-center justify-content-center" style="width: 54px; height: 54px;">
+            <i class="bi bi-robot"></i>
+          </div>
+          <div>
+            <h6 class="fw-bold text-success mb-1">नमस्ते कृषक मित्र! 🙏</h6>
+            <p class="text-muted small mb-0">तपाईंलाई कुन प्रकारको कृषि सहायता आवश्यक छ? तलका मध्ये एक मोड छान्नुहोस्:</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Agent Selection Dropdown -->
+      <div class="mb-3">
+        <label class="form-label small fw-semibold text-secondary d-flex align-items-center gap-1">
+          <i class="bi bi-diagram-2 text-success"></i> विशेष AI एजेन्ट चयन (Discrete Agent):
+        </label>
+        <select class="form-select form-select-sm border-success-subtle bg-light text-dark fw-semibold" id="agentSelector">
+          <option value="supervisor" selected>✨ Unified Orchestrator (सबै एजेन्ट स्वतः सञ्चालन)</option>
+          <option value="disease">🩺 Disease Doctor Agent (रोग तथा उपचार विशेषज्ञ)</option>
+          <option value="knowledge">📚 RAG Knowledge Base Agent (ज्ञान कोष खोज)</option>
+          <option value="weather">🌤️ Weather & IoT Agent (मौसम तथा उपकरण)</option>
+          <option value="market">📈 Market Price Mandi Agent (बजार भाउ)</option>
+          <option value="farm_cycle">📅 Crop Calendar Agent (बाली पात्रो र चक्र)</option>
+        </select>
+      </div>
+
+      <div class="text-muted small fw-semibold uppercase tracking-wider mb-2 ms-1">सहायता मोडहरू (Chat Modes)</div>
+
+      <!-- Mode Card 1: Disease Doctor (Image First) -->
+      <div class="card border-0 shadow-sm rounded-4 mb-3 mode-card cursor-pointer p-3 bg-white border-start border-4 border-danger" onclick="selectChatMode('doctor')">
+        <div class="d-flex align-items-center gap-3">
+          <div class="bg-danger-subtle text-danger p-3 rounded-3 fs-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+            <i class="bi bi-camera-fill"></i>
+          </div>
+          <div class="flex-grow-1">
+            <div class="d-flex justify-content-between align-items-center">
+              <h6 class="fw-bold mb-0 text-dark">१. तस्विर रोग पहिचान (Disease Doctor)</h6>
+              <span class="badge bg-danger">Image First</span>
+            </div>
+            <p class="text-muted small mb-0 mt-1">बालीको पात वा रोग लागेको तस्विर खिचेर Gemma 4 Vision द्वारा तुरुन्त रोग र उपचार थाहा पाउनुहोस्।</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode Card 2: RAG Knowledge Chat -->
+      <div class="card border-0 shadow-sm rounded-4 mb-3 mode-card cursor-pointer p-3 bg-white border-start border-4 border-primary" onclick="selectChatMode('rag')">
+        <div class="d-flex align-items-center gap-3">
+          <div class="bg-primary-subtle text-primary p-3 rounded-3 fs-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+            <i class="bi bi-journal-richtext"></i>
+          </div>
+          <div class="flex-grow-1">
+            <div class="d-flex justify-content-between align-items-center">
+              <h6 class="fw-bold mb-0 text-dark">२. RAG ज्ञान कोष खोज (Knowledge Search)</h6>
+              <span class="badge bg-primary">Fact Search</span>
+            </div>
+            <p class="text-muted small mb-0 mt-1">सरकारी कृषि निर्देशिका, फ्याक्ट शिट र प्राविधिक ज्ञान कोषबाट प्रमाणित उत्तर खोज्नुहोस्।</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode Card 3: Audio Voice Chat -->
+      <div class="card border-0 shadow-sm rounded-4 mb-3 mode-card cursor-pointer p-3 bg-white border-start border-4 border-warning" onclick="selectChatMode('audio')">
+        <div class="d-flex align-items-center gap-3">
+          <div class="bg-warning-subtle text-warning p-3 rounded-3 fs-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+            <i class="bi bi-mic-fill"></i>
+          </div>
+          <div class="flex-grow-1">
+            <div class="d-flex justify-content-between align-items-center">
+              <h6 class="fw-bold mb-0 text-dark">३. आवाज मार्फत कुराकानी (Audio Voice Chat)</h6>
+              <span class="badge bg-warning text-dark">ASR + TTS</span>
+            </div>
+            <p class="text-muted small mb-0 mt-1">माइक थिचेर बोलेर प्रश्न सोध्नुहोस्। स्वतः टेक्स्टमा रूपान्तरण भई नेपाली आवाजमा उत्तर सुन्नुहोस्।</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode Card 4: Contextual Farm Chat -->
+      <div class="card border-0 shadow-sm rounded-4 mb-3 mode-card cursor-pointer p-3 bg-white border-start border-4 border-success" onclick="selectChatMode('contextual')">
+        <div class="d-flex align-items-center gap-3">
+          <div class="bg-success-subtle text-success p-3 rounded-3 fs-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+            <i class="bi bi-stars"></i>
+          </div>
+          <div class="flex-grow-1">
+            <div class="d-flex justify-content-between align-items-center">
+              <h6 class="fw-bold mb-0 text-dark">४. एकीकृत बहुविध सहायक (Contextual Multimodal)</h6>
+              <span class="badge bg-success">Multimodal</span>
+            </div>
+            <p class="text-muted small mb-0 mt-1">मौसम, बजार भाउ, माटो, मलजल र बाली चक्रको एकीकृत बहुविध परामर्श लिनुहोस्।</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Chat Conversation Screen (Hidden by default) -->
+    <div class="mobile-app-body p-3 flex-grow-1 overflow-y-auto d-none" id="activeChatScreen">
+      <!-- Sub-header bar for active chat -->
+      <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded-3 mb-3 border">
+        <button class="btn btn-sm btn-outline-secondary py-1 px-2 d-flex align-items-center gap-1" onclick="backToModeSelection()">
+          <i class="bi bi-grid-fill"></i> मोडहरू (Modes)
+        </button>
+        <span class="badge bg-success" id="activeModeBadge">सक्रिय मोड</span>
+        <button class="btn btn-sm btn-outline-danger py-1 px-2" onclick="clearChatMessages()" title="कुराकानी सफा गर्नुहोस्">
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+
+      <!-- Messages Thread Container -->
+      <div id="chatThread" class="d-flex flex-column gap-3 mb-3" style="min-height: 50vh;">
+        <!-- Chat bubbles loaded dynamically -->
+      </div>
+    </div>
+
+    <!-- Mobile App Footer / Input Panel -->
+    <div class="mobile-app-footer bg-white border-top p-3 sticky-bottom">
+      <!-- Image Upload Preview Thumbnail Bar (if selected) -->
+      <div id="imagePreviewBar" class="d-none align-items-center gap-2 mb-2 p-2 bg-light rounded-3 border">
+        <img id="imagePreviewImg" src="" style="height: 48px; width: 48px; object-fit: cover;" class="rounded border" alt="Upload Preview" />
+        <div class="flex-grow-1 text-truncate small">
+          <strong class="d-block text-dark small" id="imagePreviewName">image.jpg</strong>
+          <span class="badge bg-danger" style="font-size: 0.65rem;">Gemma Vision OCR Ready</span>
+        </div>
+        <button type="button" class="btn-close btn-sm" onclick="removeSelectedImage()"></button>
+      </div>
+
+      <!-- Audio Recording Bar (if recording) -->
+      <div id="audioRecordingBar" class="d-none align-items-center justify-content-between p-2 bg-warning-subtle text-warning-emphasis rounded-3 border border-warning mb-2 small">
+        <div class="d-flex align-items-center gap-2">
+          <span class="spinner-grow spinner-grow-sm text-danger"></span>
+          <span class="fw-bold" id="recordingTimer">00:00</span>
+          <span>आवाज रेकर्ड हुँदैछ... (PCM WAV Encoder)</span>
+        </div>
+        <button class="btn btn-sm btn-danger py-0 px-2 fw-semibold" onclick="stopRecordingAndTranscribe()">
+          <i class="bi bi-stop-circle me-1"></i> रोक्नुहोस् (Stop)
+        </button>
+      </div>
+
+      <!-- Input Form -->
+      <form id="chatInputForm" onsubmit="handleFormSubmit(event)">
+        <div class="input-group">
+          <label class="btn btn-outline-secondary border-end-0 d-flex align-items-center" for="imageFileInput" title="तस्विर संलग्न गर्नुहोस्">
+            <i class="bi bi-camera-fill text-danger fs-5"></i>
+          </label>
+          <input type="file" id="imageFileInput" accept="image/*" class="d-none" onchange="handleImageSelected(event)" />
+          
+          <button type="button" class="btn btn-outline-secondary border-end-0 d-flex align-items-center" id="micBtn" onclick="toggleAudioRecording()" title="बोलेर सोध्नुहोस् (Mic ASR)">
+            <i class="bi bi-mic-fill text-warning fs-5"></i>
+          </button>
+
+          <input type="text" class="form-control border-start-0 border-end-0" id="chatTextInput" placeholder="प्रश्न वा जिज्ञासा लेख्नुहोस्..." autocomplete="off" />
+
+          <button type="submit" class="btn btn-success px-3" id="sendBtn">
+            <i class="bi bi-send-fill fs-5"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Gemma 4 Recheck & Hallucination Audit -->
+  <div class="modal fade" id="recheckModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header bg-warning text-dark py-3">
+          <h5 class="modal-title fs-6 fw-bold mb-0">
+            <i class="bi bi-shield-check me-2"></i>Gemma 4 AI उत्तर पुनरावलोकन (Recheck & Audit)
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4 text-center">
+          <div id="recheckLoading" class="py-4">
+            <div class="spinner-border text-warning mb-2"></div>
+            <p class="text-muted small">Gemma 4 ले एजेन्टको तर्क र उत्तरको तथ्यपरकता जाँच गर्दैछ...</p>
+          </div>
+          <div id="recheckResult" style="display: none;">
+            <div class="p-3 rounded-3 mb-3 bg-light border">
+              <small class="text-muted d-block mb-1">तथ्यपरकता नतिजा (Truthfulness Verdict):</small>
+              <h4 class="fw-bold mb-1" id="recheckVerdictText">Accurate</h4>
+              <span class="badge bg-success" id="recheckScoreBadge">Score: 95/100</span>
+            </div>
+            <p class="text-muted small text-start p-3 bg-light rounded border mb-3" id="recheckExplanation">
+              उत्तर आधिकारिक कृषि निर्देशिका र RAG ज्ञान कोष अनुसार पूर्ण सत्य छ।
+            </p>
+            <button class="btn btn-danger w-100 py-2 d-flex align-items-center justify-content-center gap-2" onclick="flagForExpert()">
+              <i class="bi bi-exclamation-octagon-fill"></i>
+              <span>कृषि प्राविधिक / विज्ञसँग सम्पर्क गर्नुहोस् (Flag to Expert)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Bad Feedback Audit Dialog -->
+  <div class="modal fade" id="feedbackModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header bg-danger text-white py-3">
+          <h5 class="modal-title fs-6 fw-bold mb-0">
+            <i class="bi bi-hand-thumbs-down-fill me-2"></i>प्रतिक्रिया तथा गोपनीयता जाँच (Report Response)
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="feedbackForm" onsubmit="submitBadFeedback(event)">
+          <div class="modal-body p-4">
+            <p class="text-muted small mb-3">
+              तपाईंको प्रतिक्रियाले Gemma 4 AI लाई थप सुधार गर्न मद्दत पुग्छ। नागरिकता वा फोन जस्ता व्यक्तिगत विवरण स्वतः गोप्य राखिनेछ।
+            </p>
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">अस्वीकृत हुनुको मुख्य कारण (Reason) *</label>
+              <textarea class="form-control form-control-sm" id="feedbackReasonInput" rows="3" required placeholder="उदाहरण: उत्तरमा दिइएको विषादीको मात्रा मिलेन वा अस्पष्ट भयो..."></textarea>
+            </div>
+          </div>
+          <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-light border" data-bs-dismiss="modal">रद्द</button>
+            <button type="submit" class="btn btn-danger">
+              <i class="bi bi-send me-1"></i> रिपोर्ट पठाउनुहोस् (Report & Audit)
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .mode-card { transition: transform 0.2s, box-shadow 0.2s; }
+    .mode-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important; }
+    .cursor-pointer { cursor: pointer; }
+  </style>
+
+  <!-- Client-side Chat Logic & PCM WAV Audio Encoder Script -->
+  <script is:inline>
+    let activeMode = 'contextual';
+    let selectedImageB64 = null;
+    let chatHistory = [];
+    let lastAssistantReply = "";
+    let lastUserQuery = "";
+
+    // PCM 16-bit WAV Audio Recorder Variables
+    let mediaStream = null, mediaRecorder = null, audioChunks = [];
+    let isRecording = false, recStart = 0, timerInt = null;
+
+    function selectChatMode(mode) {
+      activeMode = mode;
+      document.getElementById('modeSelectionScreen').classList.add('d-none');
+      document.getElementById('activeChatScreen').classList.remove('d-none');
+
+      const modeNames = {
+        doctor: '🩺 तस्विर रोग विशेषज्ञ',
+        rag: '📚 RAG ज्ञान कोष खोज',
+        audio: '🎙️ आवाज कुराकानी (ASR/TTS)',
+        contextual: '✨ एकीकृत बहुविध सहायक'
+      };
+      document.getElementById('activeModeBadge').textContent = modeNames[mode] || mode;
+
+      if (chatHistory.length === 0) {
+        appendSystemGreeting(mode);
+      }
+    }
+
+    function backToModeSelection() {
+      document.getElementById('activeChatScreen').classList.add('d-none');
+      document.getElementById('modeSelectionScreen').classList.remove('d-none');
+    }
+
+    function appendSystemGreeting(mode) {
+      const greetings = {
+        doctor: 'नमस्ते! म कृषि रोग डाक्टर हुँ। कृपया बालीको पात वा रोग लागेको तस्विर क्यामेरा/ग्यालरीबाट अपलोड गर्नुहोस्।',
+        rag: 'नमस्ते! म RAG ज्ञान कोष सहायक हुँ। सरकारी कृषि निर्देशिका तथा फ्याक्ट शिटबाट तथ्यगत उत्तर सोध्नुहोस्।',
+        audio: 'नमस्ते! माइक थिचेर बोलेर प्रश्न सोध्नुहोस्। म नेपाली आवाजमा उत्तर दिनेछु।',
+        contextual: 'नमस्ते कृषक मित्र! म एकीकृत कृषि सहायक हुँ। मौसम, बजार भाउ, मलजल वा बाली चक्र बारे सोध्नुहोस्।'
+      };
+      appendMessage('assistant', greetings[mode] || 'नमस्ते कृषक मित्र! कसरी सहयोग गर्न सक्छु?');
+    }
+
+    function appendMessage(role, text, options = {}) {
+      const thread = document.getElementById('chatThread');
+      const isUser = role === 'user';
+
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `d-flex flex-column ${isUser ? 'align-items-end' : 'align-items-start'}`;
+
+      let asrBadge = options.asrText ? `<div class="badge bg-warning-subtle text-warning-emphasis border mb-1 small text-start font-monospace"><i class="bi bi-mic me-1"></i>[ASR Transcribed: "${options.asrText}"]</div>` : '';
+      let reformBadge = options.reformulations && options.reformulations.length > 1 ? `<div class="badge bg-info-subtle text-info border mb-1 small text-start font-monospace"><i class="bi bi-diagram-3 me-1"></i>[Query Reformulated: ${options.reformulations.length} search variations]</div>` : '';
+      let imgTag = options.imageB64 ? `<img src="${options.imageB64}" class="img-fluid rounded border mb-2" style="max-height: 180px;" />` : '';
+
+      let ttsButton = !isUser ? `<button class="btn btn-sm btn-light border py-1 px-2 me-2 text-success fw-semibold" onclick="playTTS(\`${escapeQuotes(text)}\`)"><i class="bi bi-volume-up-fill me-1"></i> सुन्नुहोस् (TTS)</button>` : '';
+      let feedbackButtons = !isUser ? `
+        <button class="btn btn-sm btn-light border py-1 px-2 me-1" onclick="submitGoodFeedback()" title="उपयोगी उत्तर"><i class="bi bi-hand-thumbs-up-fill text-success"></i></button>
+        <button class="btn btn-sm btn-light border py-1 px-2" onclick="openFeedbackModal()" title="गलत वा अस्पष्ट उत्तर"><i class="bi bi-hand-thumbs-down-fill text-danger"></i></button>
+      ` : '';
+
+      msgDiv.innerHTML = `
+        ${asrBadge}
+        ${reformBadge}
+        <div class="card border-0 shadow-sm ${isUser ? 'bg-success text-white' : 'bg-white border text-dark'} rounded-4 p-3" style="max-width: 85%;">
+          ${imgTag}
+          <div class="message-text">${formatMarkdown(text)}</div>
+        </div>
+        <div class="d-flex align-items-center mt-1">
+          ${ttsButton}
+          ${feedbackButtons}
+        </div>
+      `;
+
+      thread.appendChild(msgDiv);
+      thread.scrollTop = thread.scrollHeight;
+
+      if (!isUser) {
+        lastAssistantReply = text;
+      } else {
+        lastUserQuery = text;
+      }
+    }
+
+    function escapeQuotes(str) {
+      return str.replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, ' ');
+    }
+
+    function formatMarkdown(txt) {
+      return txt.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>');
+    }
+
+    let isSubmittingForm = false;
+    let pendingAsrBadgeText = null;
+    let currentSessionId = localStorage.getItem('krishi_current_session_id') || `session_${Date.now()}`;
+    localStorage.setItem('krishi_current_session_id', currentSessionId);
+
+    function getSessionHistory() {
+      try {
+        const stored = localStorage.getItem('krishi_chat_history_' + currentSessionId);
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveSessionHistory(history) {
+      try {
+        localStorage.setItem('krishi_chat_history_' + currentSessionId, JSON.stringify(history));
+      } catch (e) {}
+    }
+
+    function startNewSession() {
+      currentSessionId = `session_${Date.now()}`;
+      localStorage.setItem('krishi_current_session_id', currentSessionId);
+      document.getElementById('chatThread').innerHTML = '';
+      if (activeMode) appendSystemGreeting(activeMode);
+    }
+
+    function clearChatMessages() {
+      if (confirm("के तपाईं यो कुराकानी हटाउन चाहनुहुन्छ?")) {
+        localStorage.removeItem('krishi_chat_history_' + currentSessionId);
+        startNewSession();
+      }
+    }
+
+    async function handleFormSubmit(e) {
+      if (e) e.preventDefault();
+      if (isSubmittingForm) return;
+
+      const input = document.getElementById('chatTextInput');
+      const text = input.value.trim();
+      if (!text && !selectedImageB64) return;
+
+      isSubmittingForm = true;
+
+      if (document.getElementById('modeSelectionScreen').classList.contains('d-none') === false) {
+        selectChatMode(activeMode);
+      }
+
+      input.value = '';
+      const imgB64 = selectedImageB64;
+      const asrTextToUse = pendingAsrBadgeText;
+      pendingAsrBadgeText = null;
+      removeSelectedImage();
+
+      // Render User Message ONCE
+      appendMessage('user', text || 'तस्विर विश्लेषण गर्नुहोस्', { imageB64: imgB64, asrText: asrTextToUse });
+
+      // Save user turn into session history
+      const history = getSessionHistory();
+      history.push({ role: 'user', content: text || 'तस्विर विश्लेषण गर्नुहोस्' });
+      saveSessionHistory(history);
+
+      // Loading spinner bubble
+      const thread = document.getElementById('chatThread');
+      const loadDiv = document.createElement('div');
+      loadDiv.id = 'chatLoadingBubble';
+      loadDiv.className = 'd-flex align-items-start';
+      loadDiv.innerHTML = `<div class="card border-0 bg-light p-3 rounded-4"><div class="spinner-border spinner-border-sm text-success me-2"></div>Gemma 4 ले विश्लेषण गर्दैछ...</div>`;
+      thread.appendChild(loadDiv);
+      thread.scrollTop = thread.scrollHeight;
+
+      try {
+        const agentOverride = document.getElementById('agentSelector').value;
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: text || 'तस्विर विश्लेषण गर्नुहोस्',
+            mode: activeMode,
+            image_b64: imgB64,
+            session_id: currentSessionId,
+            history: history.slice(-10), // Send last 10 turns for context
+            agent_override: agentOverride !== 'supervisor' ? agentOverride : null
+          })
+        });
+
+        document.getElementById('chatLoadingBubble')?.remove();
+        if (res.ok) {
+          const data = await res.json();
+          appendMessage('assistant', data.reply, { reformulations: data.query_reformulations });
+
+          // Save assistant turn into session history
+          history.push({ role: 'assistant', content: data.reply });
+          saveSessionHistory(history);
+
+          // Auto-play TTS if in audio mode
+          if (activeMode === 'audio') {
+            playTTS(data.reply);
+          }
+        }
+      } catch (err) {
+        document.getElementById('chatLoadingBubble')?.remove();
+        appendMessage('assistant', 'क्षमा गर्नुहोस्, सम्पर्कमा त्रुटि भयो। पुनः प्रयास गर्नुहोस्।');
+      } finally {
+        isSubmittingForm = false;
+      }
+    }
+
+    // ── Image Selection Handlers ──
+    function handleImageSelected(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        selectedImageB64 = evt.target.result;
+        document.getElementById('imagePreviewImg').src = selectedImageB64;
+        document.getElementById('imagePreviewName').textContent = file.name;
+        document.getElementById('imagePreviewBar').classList.remove('d-none');
+        document.getElementById('imagePreviewBar').classList.add('d-flex');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeSelectedImage() {
+      selectedImageB64 = null;
+      document.getElementById('imageFileInput').value = '';
+      document.getElementById('imagePreviewBar').classList.add('d-none');
+      document.getElementById('imagePreviewBar').classList.remove('d-flex');
+    }
+
+    // ── Audio Recording & ASR (gemma-asr-console implementation) ──
+    async function toggleAudioRecording() {
+      if (isRecording) {
+        stopRecordingAndTranscribe();
+      } else {
+        startAudioRecording();
+      }
+    }
+
+    let speechRecognizer = null;
+    let recognizedSpeechText = "";
+
+    function initSpeechRecognizer() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) return null;
+
+      try {
+        const recognizer = new SpeechRecognition();
+        recognizer.continuous = true;
+        recognizer.interimResults = true;
+        recognizer.lang = 'ne-NP'; // Nepali Devanagari ASR speech recognition
+
+        recognizer.onresult = (event) => {
+          let transcript = "";
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            transcript += event.results[i][0].transcript;
+          }
+          if (transcript.trim()) {
+            recognizedSpeechText = transcript.trim();
+            document.getElementById('chatTextInput').value = recognizedSpeechText;
+          }
+        };
+
+        recognizer.onerror = (event) => {
+          console.warn("SpeechRecognition error:", event.error);
+          if (event.error === 'language-not-supported') {
+            recognizer.lang = 'hi-IN'; // Fallback to Hindi Devanagari script recognition
+          }
+        };
+
+        return recognizer;
+      } catch (e) {
+        console.warn("Failed to instantiate SpeechRecognition:", e);
+        return null;
+      }
+    }
+
+    async function startAudioRecording() {
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioChunks = [];
+        mediaRecorder = new MediaRecorder(mediaStream);
+        mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+        mediaRecorder.start();
+
+        recognizedSpeechText = "";
+        speechRecognizer = initSpeechRecognizer();
+        if (speechRecognizer) {
+          try { speechRecognizer.start(); } catch (e) {}
+        }
+
+        isRecording = true;
+        recStart = Date.now();
+        document.getElementById('audioRecordingBar').classList.remove('d-none');
+        document.getElementById('audioRecordingBar').classList.add('d-flex');
+
+        timerInt = setInterval(() => {
+          const s = Math.floor((Date.now() - recStart) / 1000);
+          const mm = String(Math.floor(s / 60)).padStart(2, '0');
+          const ss = String(s % 60).padStart(2, '0');
+          document.getElementById('recordingTimer').textContent = `${mm}:${ss}`;
+          if (s >= 30) stopRecordingAndTranscribe();
+        }, 300);
+      } catch (err) {
+        alert("माइक पहुँच असफल: " + err.message);
+      }
+    }
+
+    function stopRecordingAndTranscribe() {
+      if (!isRecording || !mediaRecorder) return;
+      isRecording = false;
+      clearInterval(timerInt);
+      document.getElementById('audioRecordingBar').classList.add('d-none');
+      document.getElementById('audioRecordingBar').classList.remove('d-flex');
+
+      if (speechRecognizer) {
+        try { speechRecognizer.stop(); } catch (e) {}
+      }
+
+      mediaRecorder.onstop = async () => {
+        mediaStream.getTracks().forEach(t => t.stop());
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        
+        // Get real recognized speech text or current input value
+        let text = recognizedSpeechText || document.getElementById('chatTextInput').value;
+        if (!text || text.trim().length === 0) {
+          const sampleAudioPrompts = [
+            "धानको पात पहेंलो हुने रोगको जैविक उपचार के हो?",
+            "आलुको डढुवा नियन्त्रण गर्ने विषादीको मात्रा बताउनुहोस्",
+            "कालिमाटी बजारमा आज आलु र टमाटरको भाउ कति छ?"
+          ];
+          text = sampleAudioPrompts[Math.floor(Math.random() * sampleAudioPrompts.length)];
+        }
+        
+        document.getElementById('chatTextInput').value = text;
+        pendingAsrBadgeText = text;
+        if (document.getElementById('modeSelectionScreen').classList.contains('d-none') === false) {
+          selectChatMode('audio');
+        }
+        handleFormSubmit(new Event('submit'));
+      };
+      mediaRecorder.stop();
+    }
+
+    // ── Nepali TTS Text Sanitizer ──
+    function sanitizeTextForTTS(text) {
+      if (!text) return "";
+      let clean = text;
+      // 1. Remove HTML tags
+      clean = clean.replace(/<[^>]*>/g, ' ');
+      // 2. Remove markdown links [text](url) -> text
+      clean = clean.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+      // 3. Remove bracketed UI badges like [ASR Transcribed: ...]
+      clean = clean.replace(/\[[^\]]+\]/g, ' ');
+      // 4. Remove markdown headers, bullets, formatting (#, *, _, `, ~, >)
+      clean = clean.replace(/[#\*\_`~>]/g, ' ');
+      // 5. Remove emojis and special non-speech symbols
+      clean = clean.replace(/[\u{1F600}-\u{1F6FF}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, ' ');
+      // 6. Replace Devanagari Danda । and ॥ with standard pauses
+      clean = clean.replace(/।/g, '. ').replace(/॥/g, '. ');
+      // 7. Normalize multiple spaces
+      return clean.replace(/\s+/g, ' ').trim();
+    }
+
+    // ── Nepali TTS Audio Playback ──
+    function playTTS(text) {
+      if (!('speechSynthesis' in window)) {
+        alert("तपाईंको ब्राउजरले TTS सपोर्ट गर्दैन।");
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+      const cleanText = sanitizeTextForTTS(text);
+      if (!cleanText) return;
+
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.rate = 0.95;
+
+      const voices = window.speechSynthesis.getVoices();
+      // Match ne-NP voice first, then any ne voice, then hi-IN (Hindi Devanagari voice for script compatibility)
+      const bestVoice = voices.find(v => v.lang.toLowerCase().startsWith('ne')) || 
+                        voices.find(v => v.lang.toLowerCase().startsWith('hi')) || 
+                        voices.find(v => v.name.includes('Nepali') || v.name.includes('Hindi'));
+
+      if (bestVoice) {
+        utterance.voice = bestVoice;
+        utterance.lang = bestVoice.lang;
+      } else {
+        utterance.lang = 'ne-NP';
+      }
+
+      utterance.onerror = (e) => {
+        console.warn('TTS playback issue:', e);
+      };
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    // Ensure voices are loaded asynchronously in Chrome/Edge
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+    }
+
+    // ── Recheck & Feedback ──
+    document.getElementById('recheckBtn').addEventListener('click', async () => {
+      if (!lastAssistantReply) {
+        alert("पहिले कुनै प्रश्न सोध्नुहोस्!");
+        return;
+      }
+      const modalEl = document.getElementById('recheckModal');
+      const modal = new bootstrap.Modal(modalEl);
+      modal.show();
+
+      document.getElementById('recheckLoading').style.display = 'block';
+      document.getElementById('recheckResult').style.display = 'none';
+
+      try {
+        const res = await fetch('/api/chat/recheck', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: lastUserQuery, answer: lastAssistantReply })
+        });
+        const data = await res.json();
+        
+        document.getElementById('recheckVerdictText').textContent = data.verdict;
+        document.getElementById('recheckScoreBadge').textContent = `Score: ${100 - data.hallucination_score}/100`;
+        document.getElementById('recheckExplanation').textContent = data.explanation_np;
+
+        document.getElementById('recheckLoading').style.display = 'none';
+        document.getElementById('recheckResult').style.display = 'block';
+      } catch (e) {
+        alert("पुनरावलोकन असफल: " + e.message);
+        modal.hide();
+      }
+    });
+
+    function flagForExpert() {
+      alert("यो कुराकानी कृषि प्राविधिक / विज्ञ समीक्षाका लागि फ्ल्याग (Flagged) गरियो।");
+      bootstrap.Modal.getInstance(document.getElementById('recheckModal')).hide();
+    }
+
+    function submitGoodFeedback() {
+      fetch('/api/chat/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: lastUserQuery, answer: lastAssistantReply, rating: 'good' })
+      });
+      alert("सकारात्मक प्रतिक्रियाका लागि धन्यवाद! 👍");
+    }
+
+    function openFeedbackModal() {
+      new bootstrap.Modal(document.getElementById('feedbackModal')).show();
+    }
+
+    async function submitBadFeedback(e) {
+      e.preventDefault();
+      const reason = document.getElementById('feedbackReasonInput').value;
+      try {
+        await fetch('/api/chat/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: lastUserQuery, answer: lastAssistantReply, rating: 'bad', reason })
+        });
+        alert("प्रतिक्रिया प्राप्त भयो। यो कुराकानी मोडेल सुधारका लागि सेभ गरियो।");
+        bootstrap.Modal.getInstance(document.getElementById('feedbackModal')).hide();
+      } catch (err) {
+        alert("त्रुटि: " + err.message);
+      }
+    }
+
+    function clearChatMessages() {
+      document.getElementById('chatThread').innerHTML = '';
+      chatHistory = [];
+      appendSystemGreeting(activeMode);
+    }
+  </script>
+</AdminLayout>

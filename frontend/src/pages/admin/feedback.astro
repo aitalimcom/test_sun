@@ -1,0 +1,188 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="प्रतिक्रिया तथा Gemma 4 अलाइनमेन्ट अडिट" activePage="feedback">
+  <!-- Page Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+      <h4 class="mb-1 fw-bold text-danger">
+        <i class="bi bi-shield-exclamation me-2"></i>अस्वीकृत उत्तर तथा Gemma 4 अलाइनमेन्ट अडिट (Reported Chats Audit)
+      </h4>
+      <p class="text-muted small mb-0">
+        कृषकहरूले गलत वा अस्पष्ट भनी रिपोर्ट गरेका कुराकानीहरू। यहाँबाट विज्ञले उत्तर सच्याउन र Gemma 4 Alignment का लागि JSONL Dataset एक्सपोर्ट गर्न सकिन्छ।
+      </p>
+    </div>
+    <a href="/api/admin/feedback/export" download="gemma_alignment_dataset.json" class="btn btn-danger d-flex align-items-center gap-2 shadow-sm">
+      <i class="bi bi-download"></i>
+      <span>JSONL Dataset एक्सपोर्ट गर्नुहोस् (Model Fine-tuning)</span>
+    </a>
+  </div>
+
+  <!-- Reported Chats Table Card -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+      <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-list-task me-2 text-danger"></i>रिपोर्ट गरिएका कुराकानी सूची (Reported Conversations)</h6>
+      <span class="badge bg-danger-subtle text-danger border border-danger-subtle" id="reportsCountBadge">0 Reports</span>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light text-secondary small">
+            <tr>
+              <th class="ps-3">ID & समय</th>
+              <th>कृषकको प्रश्न (User Query)</th>
+              <th>Gemma 4 उत्तर (Rejected Answer)</th>
+              <th>अस्वीकारको कारण (User Reason)</th>
+              <th>विज्ञको सच्याइ (Expert Correction)</th>
+              <th class="text-end pe-3">कार्य (Action)</th>
+            </tr>
+          </thead>
+          <tbody id="reportedTableBody" class="small">
+            <tr>
+              <td colspan="6" class="text-center py-4 text-muted">
+                <div class="spinner-border spinner-border-sm text-danger me-2"></div>लोड हुँदैछ...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add Expert Correction -->
+  <div class="modal fade" id="correctionModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header bg-success text-white py-3">
+          <h5 class="modal-title fs-6 fw-bold mb-0">
+            <i class="bi bi-pencil-square me-2"></i>विज्ञ द्वारा उत्तर संशोधन (Expert Correction)
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="correctionForm" onsubmit="submitCorrection(event)">
+          <input type="hidden" id="correctionRecordId" />
+          <div class="modal-body p-4">
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">कृषकको प्रश्न:</label>
+              <div class="p-2 bg-light rounded border text-dark small" id="modalQueryText">-</div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-semibold text-danger">Gemma 4 को गलत उत्तर:</label>
+              <div class="p-2 bg-danger-subtle text-danger rounded border border-danger-subtle small" id="modalAnswerText">-</div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-semibold text-success">आधिकारिक / सहि उत्तर (Expert Correct Answer) *</label>
+              <textarea class="form-control" id="modalCorrectionInput" rows="4" required placeholder="यहाँ कृषि विज्ञ द्वारा प्रमाणित सहि उत्तर लेख्नुहोस्..."></textarea>
+            </div>
+          </div>
+          <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-light border" data-bs-dismiss="modal">रद्द</button>
+            <button type="submit" class="btn btn-success">
+              <i class="bi bi-check-circle me-1"></i> सच्याइ सुरक्षित गर्नुहोस्
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    let reportsList = [];
+
+    async function loadReportedChats() {
+      try {
+        const res = await fetch('/api/admin/feedback/reported');
+        if (res.ok) {
+          const data = await res.json();
+          reportsList = data.reported_chats || [];
+        }
+      } catch (e) {
+        reportsList = [
+          {
+            id: "audit_001",
+            query: "आलुको डढुवा रोगमा कुन ओषधी हाल्ने?",
+            answer: "तपाईंले १ लिटर पानीमा १० एमएल किटनाशक हाल्नुहोस्।",
+            reason: "ओषधीको मात्रा अति धेरै भयो, बाली सुक्छ।",
+            expert_correction: "फङ्गीसाइड म्याङ्कोजेब ७५% WP प्रति लिटर २ ग्राम मिसाएर छर्कनुहोस्।",
+            status: "reviewed",
+            created_at: "२०८३-०४-१५"
+          }
+        ];
+      }
+      renderTable(reportsList);
+    }
+
+    function renderTable(list) {
+      document.getElementById('reportsCountBadge').textContent = `${list.length} Reports`;
+      const tbody = document.getElementById('reportedTableBody');
+
+      if (!list || list.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="text-center py-4 text-muted">
+              कुनै रिपोर्ट गरिएको कुराकानी छैन। सबै उत्तरहरू अनुमोदित छन्।
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = list.map(r => `
+        <tr>
+          <td class="ps-3">
+            <span class="font-monospace text-dark fw-bold">${r.id}</span>
+            <small class="text-muted d-block">${r.created_at ? r.created_at.split('T')[0] : ''}</small>
+          </td>
+          <td class="fw-semibold text-dark">${r.query}</td>
+          <td class="text-danger small">${r.answer}</td>
+          <td><span class="badge bg-warning-subtle text-warning-emphasis border">${r.reason || 'अस्पष्ट'}</span></td>
+          <td>
+            ${r.expert_correction ? `<span class="text-success fw-semibold"><i class="bi bi-check-circle me-1"></i>${r.expert_correction}</span>` : '<span class="text-muted italic">सच्याइ बाँकी</span>'}
+          </td>
+          <td class="text-end pe-3">
+            <button class="btn btn-sm btn-outline-success" onclick="openCorrectionModal('${r.id}')">
+              <i class="bi bi-pencil me-1"></i> सच्याउनुहोस्
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openCorrectionModal(id) {
+      const record = reportsList.find(r => r.id === id);
+      if (!record) return;
+
+      document.getElementById('correctionRecordId').value = id;
+      document.getElementById('modalQueryText').textContent = record.query;
+      document.getElementById('modalAnswerText').textContent = record.answer;
+      document.getElementById('modalCorrectionInput').value = record.expert_correction || '';
+
+      new bootstrap.Modal(document.getElementById('correctionModal')).show();
+    }
+
+    async function submitCorrection(e) {
+      e.preventDefault();
+      const id = document.getElementById('correctionRecordId').value;
+      const text = document.getElementById('modalCorrectionInput').value;
+
+      try {
+        await fetch(`/api/admin/feedback/reported/${id}/correction`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ expert_correction: text })
+        });
+        const rec = reportsList.find(r => r.id === id);
+        if (rec) {
+          rec.expert_correction = text;
+          rec.status = 'reviewed';
+        }
+      } catch (err) {}
+
+      renderTable(reportsList);
+      bootstrap.Modal.getInstance(document.getElementById('correctionModal')).hide();
+    }
+
+    loadReportedChats();
+  </script>
+</AdminLayout>

@@ -59,8 +59,8 @@ const { title, activePage = '' } = Astro.props;
           </h2>
           <div id="farmerMenu" class={`accordion-collapse collapse ${activePage.startsWith('farmer') || activePage.startsWith('iot') ? 'show' : ''}`} data-bs-parent="#farmerAccordion">
             <div class="accordion-body">
-              <a href="/farmer" class={activePage === 'farmer' ? 'active' : ''}><i class="bi bi-people"></i> किसान सूची</a>
-              <a href="/farmer/register" class={activePage === 'farmer-register' ? 'active' : ''}><i class="bi bi-person-plus"></i> दर्ता</a>
+              <a href="/admin/farmers" class={activePage === 'farmer' ? 'active' : ''}><i class="bi bi-people"></i> किसान सूची (CMS)</a>
+              <a href="/farmer/register" class={activePage === 'farmer-register' ? 'active' : ''}><i class="bi bi-person-plus"></i> दर्ता फारम</a>
               <a href="/farmer/records" class={activePage === 'farmer-records' ? 'active' : ''}><i class="bi bi-journal-text"></i> अभिलेख</a>
             </div>
           </div>
@@ -88,8 +88,13 @@ const { title, activePage = '' } = Astro.props;
       </div>
 
       <ul class="sidebar-nav mt-2">
+        <li><a href="/farmer/chat" class={activePage === 'farmer-chat' ? 'active' : ''}><i class="bi bi-chat-dots-fill text-success"></i> कृषक AI सहायक (Mobile Chat)</a></li>
+        <li><a href="/farmer/community" class={activePage === 'community' ? 'active' : ''}><i class="bi bi-people-fill text-primary"></i> कृषक चौतारी (Community Q&A)</a></li>
         <li><a href="/schemes" class={activePage === 'schemes' ? 'active' : ''}><i class="bi bi-bank"></i> योजनाहरू</a></li>
         <li><a href="/reports" class={activePage === 'reports' ? 'active' : ''}><i class="bi bi-bar-chart-line"></i> प्रतिवेदन</a></li>
+        <li><a href="/admin/rag" class={activePage === 'admin-rag' ? 'active' : ''}><i class="bi bi-journal-richtext text-warning"></i> RAG व्यवस्थापन</a></li>
+        <li><a href="/admin/scraper" class={activePage === 'admin-scraper' ? 'active' : ''}><i class="bi bi-diagram-3 text-info"></i> सरकारी वेब स्क्र्यापर</a></li>
+        <li><a href="/admin/feedback" class={activePage === 'feedback' ? 'active' : ''}><i class="bi bi-shield-exclamation text-danger"></i> Gemma 4 अलाइनमेन्ट अडिट</a></li>
         <li><a href="/settings" class={activePage === 'settings' ? 'active' : ''}><i class="bi bi-gear"></i> सेटिङ</a></li>
       </ul>
     </nav>

@@ -25,6 +25,27 @@ def get_llm(task: str | None = None) -> BaseChatModel:
 
     # Check the provider
     provider = settings.default_provider.lower()
+
+    if provider == "openrouter":
+        api_key = settings.openrouter_api_key
+        if not api_key:
+            import os
+            api_key = os.getenv("OPENROUTER_API_KEY")
+        if api_key:
+            try:
+                from langchain_openai import ChatOpenAI
+                openrouter_model = settings.openrouter_model or "google/gemma-4-31b-it"
+                logger.info(f"Using OpenRouter provider with model: {openrouter_model}")
+                return ChatOpenAI(
+                    model=openrouter_model,
+                    api_key=api_key,
+                    base_url="https://openrouter.ai/api/v1",
+                    temperature=0.7,
+                )
+            except Exception as e:
+                logger.warning(f"OpenRouter initialization failed ({e}). Falling back.")
+        else:
+            logger.warning("OpenRouter API Key not found. Falling back to local Ollama.")
     
     if provider == "google_ai_studio" or provider == "google":
         try:

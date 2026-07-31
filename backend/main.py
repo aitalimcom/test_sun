@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
-from routes import chat, doctor, market, weather, knowledge, admin, calendar, daily, feedback, ocr
+from routes import chat, doctor, market, weather, knowledge, admin, calendar, daily, feedback, ocr, admin_rag, cms, community, admin_feedback, gov_hitl
 from routes import iot, iot_chat, iot_cron
 
 logging.basicConfig(
@@ -87,6 +87,11 @@ app.include_router(calendar.router)
 app.include_router(daily.router)
 app.include_router(feedback.router)
 app.include_router(ocr.router)
+app.include_router(admin_rag.router)
+app.include_router(cms.router)
+app.include_router(community.router)
+app.include_router(admin_feedback.router)
+app.include_router(gov_hitl.router)
 
 # ── IoT Routers ──
 app.include_router(iot.router)

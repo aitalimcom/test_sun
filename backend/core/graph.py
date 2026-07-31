@@ -180,6 +180,18 @@ class AgentGraph:
 
     def _route_from_supervisor(self, state: AgentState) -> str:
         """Route to appropriate subagent or END."""
+        # 1. Check direct agent override if requested
+        agent_override = state.get("agent_override")
+        if agent_override and agent_override in self._agents:
+            return agent_override
+
+        # 2. Auto route to disease agent if in doctor mode or image attached
+        if state.get("chat_mode") == "doctor" or state.get("image_b64"):
+            if "disease" in self._agents:
+                return "disease"
+            elif "diagnosis" in self._agents:
+                return "diagnosis"
+
         if state.get("is_complete") or not state.get("needs_agent"):
             return "__end__"
 

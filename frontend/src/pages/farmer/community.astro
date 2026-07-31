@@ -1,0 +1,260 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="कृषक चौतारी (Farmer Community Q&A)" activePage="farmer">
+  <!-- Page Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+      <h4 class="mb-1 fw-bold text-success">
+        <i class="bi bi-people-fill me-2"></i>कृषक चौतारी (Farmer Community Q&A Forum)
+      </h4>
+      <p class="text-muted small mb-0">
+        नेपाल भरका कृषक मित्रहरूसँग अनुभव साटासाट गर्नुहोस्, जिज्ञासा सोध्नुहोस् र समाधान पाउनुहोस्।
+      </p>
+    </div>
+    <button class="btn btn-success d-flex align-items-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#newPostModal">
+      <i class="bi bi-plus-circle-fill"></i>
+      <span>नयाँ प्रश्न सोध्नुहोस्</span>
+    </button>
+  </div>
+
+  <!-- Filter Pills -->
+  <div class="d-flex gap-2 mb-4 overflow-x-auto pb-2">
+    <button class="btn btn-sm btn-success rounded-pill px-3" onclick="filterPosts(null)">सबै (All)</button>
+    <button class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="filterPosts('धान')">धान (Rice)</button>
+    <button class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="filterPosts('आलु')">आलु (Potato)</button>
+    <button class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="filterPosts('तरकारी')">तरकारी (Vegetables)</button>
+    <button class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="filterPosts('मलजल')">मलजल (Fertilizer)</button>
+  </div>
+
+  <!-- Community Feed Grid -->
+  <div class="row g-4" id="communityFeed">
+    <div class="col-12 text-center py-5">
+      <div class="spinner-border text-success mb-2"></div>
+      <p class="text-muted small">चौतारीका प्रश्नहरू लोड हुँदैछन्...</p>
+    </div>
+  </div>
+
+  <!-- Modal: New Community Question -->
+  <div class="modal fade" id="newPostModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header bg-success text-white py-3">
+          <h5 class="modal-title fs-6 fw-bold mb-0">
+            <i class="bi bi-patch-question-fill me-2"></i>चौतारीमा प्रश्न सोध्नुहोस्
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="newPostForm" onsubmit="handleNewPostSubmit(event)">
+          <div class="modal-body p-4">
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">तपाईंको नाम (Author Name)</label>
+              <input type="text" class="form-control" name="author" value="रामबहादुर श्रेष्ठ" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">बाली / विषय (Crop Tag)</label>
+              <select class="form-select" name="crop_tag">
+                <option value="धान">धान (Rice)</option>
+                <option value="आलु" selected>आलु (Potato)</option>
+                <option value="मकै">मकै (Maize)</option>
+                <option value="तरकारी">तरकारी (Vegetables)</option>
+                <option value="सामान्य">सामान्य परामर्श</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">जिज्ञासा वा प्रश्न (Question) *</label>
+              <textarea class="form-control" name="question" rows="4" required placeholder="उदाहरण: आलुको पातमा कालो दाग देखिएको छ, यसको रोकथाम कसरी गर्ने?"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-light border" data-bs-dismiss="modal">रद्द</button>
+            <button type="submit" class="btn btn-success">
+              <i class="bi bi-send me-1"></i> प्रश्न पोस्ट गर्नुहोस्
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    let defaultPosts = [
+      {
+        id: "post_001",
+        author: "हरिप्रसाद नेपाल (चितवन)",
+        question: "धानको बाला सुक्ने र सेतो हुने समस्या देखिएको छ। यसको नियन्त्रण कसरी गर्ने होला?",
+        crop_tag: "धान",
+        saves_count: 5,
+        answers: [
+          { author: "Gemma 4 AI Assistant", answer_text: "यो धानको स्टेम बोरर (गँबारो) वा नेक ब्लास्ट रोग हुन सक्छ। ट्राइसाइक्लाजोल ७५% WP ०.६ ग्राम प्रति लिटर पानीमा मिसाएर छर्कनुहोस्।", is_gemma_ai: true }
+        ],
+        created_at: "२०८३-०४-१५"
+      },
+      {
+        id: "post_002",
+        author: "सीतादेवी ढकाल (काभ्रे)",
+        question: "आलु रोप्ने समयमा कुन प्राङ्गारिक मल प्रयोग गर्दा राम्रो उत्पादन हुन्छ?",
+        crop_tag: "आलु",
+        saves_count: 12,
+        answers: [
+          { author: "रामबहादुर श्रेष्ठ", answer_text: "पाकेको गोबर मल वा कम्पोस्ट मल प्रति रोपनी १,००० केजी र ट्राइकोडर्मा मिसाएर हाल्नुहोस्।", is_gemma_ai: false }
+        ],
+        created_at: "२०८३-०४-१४"
+      }
+    ];
+
+    async function loadPosts(tag = null) {
+      const feed = document.getElementById('communityFeed');
+      try {
+        const url = tag ? `/api/community?crop_tag=${encodeURIComponent(tag)}` : '/api/community';
+        const res = await fetch(url);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.posts && data.posts.length > 0) {
+            defaultPosts = data.posts;
+          }
+        }
+      } catch (e) {}
+
+      renderPosts(defaultPosts);
+    }
+
+    function renderPosts(posts) {
+      const feed = document.getElementById('communityFeed');
+      if (!posts || posts.length === 0) {
+        feed.innerHTML = `
+          <div class="col-12 text-center py-5 text-muted">
+            <i class="bi bi-chat-square-dots fs-1 d-block mb-2"></i> कुनै प्रश्न भेटिएन।
+          </div>
+        `;
+        return;
+      }
+
+      feed.innerHTML = posts.map(p => `
+        <div class="col-md-6">
+          <div class="card border-0 shadow-sm rounded-4 h-100 p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge bg-success-subtle text-success border border-success-subtle fw-semibold">${p.crop_tag}</span>
+              <small class="text-muted">${p.created_at || 'हालै'}</small>
+            </div>
+            <h6 class="fw-bold text-dark mb-2">${p.question}</h6>
+            <small class="text-muted d-block mb-3"><i class="bi bi-person me-1"></i>${p.author}</small>
+
+            <div class="answers-box bg-light p-3 rounded-3 mb-3 border">
+              <small class="text-secondary fw-semibold d-block mb-2"><i class="bi bi-chat-left-text me-1"></i>उत्तरहरू (${(p.answers || []).length}):</small>
+              ${(p.answers || []).map(a => `
+                <div class="mb-2 p-2 bg-white rounded border small">
+                  <strong class="d-block ${a.is_gemma_ai ? 'text-success' : 'text-primary'}">${a.author} ${a.is_gemma_ai ? '<span class="badge bg-success" style="font-size:0.6rem">AI Answer</span>' : ''}</strong>
+                  <span>${a.answer_text}</span>
+                </div>
+              `).join('')}
+            </div>
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-auto">
+              <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="savePost('${p.id}')">
+                <i class="bi bi-bookmark me-1"></i> सेभ (${p.saves_count || 0})
+              </button>
+              <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-success rounded-pill px-3" id="gemmaBtn_${p.id}" onclick="generateGemmaAnswer('${p.id}')">
+                  <i class="bi bi-robot me-1"></i> Gemma 4 AI उत्तर
+                </button>
+                <button class="btn btn-sm btn-success rounded-pill px-3" onclick="replyPost('${p.id}')">
+                  <i class="bi bi-reply me-1"></i> उत्तर दिनुहोस्
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function handleNewPostSubmit(e) {
+      e.preventDefault();
+      const form = e.target;
+      const formData = new FormData(form);
+      const payload = {
+        author: formData.get('author'),
+        crop_tag: formData.get('crop_tag'),
+        question: formData.get('question')
+      };
+
+      try {
+        const res = await fetch('/api/community', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const data = await res.json();
+          defaultPosts.unshift(data.post);
+        } else {
+          payload.id = 'post_' + Date.now();
+          payload.answers = [];
+          defaultPosts.unshift(payload);
+        }
+      } catch (err) {
+        payload.id = 'post_' + Date.now();
+        payload.answers = [];
+        defaultPosts.unshift(payload);
+      }
+
+      renderPosts(defaultPosts);
+      bootstrap.Modal.getInstance(document.getElementById('newPostModal')).hide();
+      form.reset();
+    }
+
+    async function savePost(id) {
+      try {
+        await fetch(`/api/community/${id}/save`, { method: 'POST' });
+        const post = defaultPosts.find(p => p.id === id);
+        if (post) post.saves_count = (post.saves_count || 0) + 1;
+        renderPosts(defaultPosts);
+      } catch (e) {}
+    }
+
+    async function replyPost(id) {
+      const text = prompt("तपाईंको उत्तर लेख्नुहोस्:");
+      if (!text) return;
+      try {
+        const res = await fetch(`/api/community/${id}/answer`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ author: "रामबहादुर श्रेष्ठ", answer_text: text })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const idx = defaultPosts.findIndex(p => p.id === id);
+          if (idx !== -1) defaultPosts[idx] = data.post;
+        }
+      } catch (e) {}
+      renderPosts(defaultPosts);
+    }
+
+    async function generateGemmaAnswer(id) {
+      const btn = document.getElementById('gemmaBtn_' + id);
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> उत्तर ल्याउँदैछ...`;
+      }
+      try {
+        const res = await fetch(`/api/community/${id}/gemma-answer`, { method: 'POST' });
+        if (res.ok) {
+          const data = await res.json();
+          const idx = defaultPosts.findIndex(p => p.id === id);
+          if (idx !== -1) defaultPosts[idx] = data.post;
+        }
+      } catch (e) {
+        console.warn("Gemma 4 community answer error:", e);
+      }
+      renderPosts(defaultPosts);
+    }
+
+    function filterPosts(tag) {
+      if (!tag) renderPosts(defaultPosts);
+      else renderPosts(defaultPosts.filter(p => p.crop_tag === tag));
+    }
+
+    loadPosts();
+  </script>
+</AdminLayout>

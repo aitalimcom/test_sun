@@ -5,7 +5,7 @@ from typing import List, Dict, Any
 
 class Settings(BaseSettings):
     # ── Default Provider ──
-    default_provider: str = "ollama"  # "ollama" or "google_ai_studio"
+    default_provider: str = "openrouter"  # "openrouter", "ollama", or "google_ai_studio"
 
     # ── Ollama Settings ──
     ollama_base_url: str = "http://localhost:11434"

@@ -207,7 +207,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         };
         return `
           <div class="col-md-6 col-xl-4">
-            <div class="card h-100 border-0 shadow-sm" style="cursor:pointer" onclick="window.location='/iot/${d.device_id}'">
+            <div class="card h-100 border-0 shadow-sm" style="cursor:pointer" onclick="window.location='/iot/device?id=${d.device_id}'">
               <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start mb-2">
                   <div class="d-flex align-items-center gap-2">

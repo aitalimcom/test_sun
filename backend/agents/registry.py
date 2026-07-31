@@ -66,19 +66,16 @@ def get_all_agents() -> dict[str, BaseAgent]:
     return {name: cls() for name, cls in AGENTS.items()}
 
 
-def initialize_graph() -> None:
-    """Initialize the LangGraph workflow with all agents."""
-    # Register all subagents with the graph
-    # (Supervisor and OutputSynthesizer are hardcoded in the graph nodes,
-    # but registering others so they can be conditional edges targets)
+def initialize_graph():
+    """Initialize the LangGraph workflow with all agents and return compiled graph."""
     for name, cls in AGENTS.items():
         if name not in ("supervisor", "output_synthesizer"):
             agent = cls()
             agent_graph.register_agent(agent)
 
-    # Build the graph
     agent_graph.build()
     logger.info("LangGraph orchestrator built successfully.")
+    return agent_graph.get_compiled_graph()
 
 
 async def dispatch_to_agent(
