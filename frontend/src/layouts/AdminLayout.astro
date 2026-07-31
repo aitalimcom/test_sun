@@ -6,34 +6,71 @@ interface Props {
 const { title, activePage = '' } = Astro.props;
 ---
 <!doctype html>
-<html lang="ne">
+<html lang="ne" data-bs-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#2F5233" />
+  <meta name="theme-color" content="#1a1a2e" />
   <title>{title} | कृषि सेवा</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
   <style>
-    body { font-family: 'Inter', system-ui, sans-serif; background: #f8f9fa; }
-    .sidebar { width: 260px; min-height: 100vh; background: #2F5233; color: #fff; position: fixed; top: 0; left: 0; z-index: 1000; transition: transform 0.3s; overflow-y: auto; }
-    .sidebar-brand { padding: 1rem 1.25rem; font-size: 1.25rem; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    :root {
+      --sidebar-bg: #0f1923;
+      --sidebar-hover: #1a2a3a;
+      --sidebar-active: #1e3a2f;
+      --topbar-bg: #151e27;
+      --body-bg: #0d1117;
+      --card-bg: #161b22;
+      --card-border: #21262d;
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --accent: #2ea043;
+      --accent-hover: #3fb950;
+    }
+    body { font-family: 'Inter', system-ui, sans-serif; background: var(--body-bg); color: var(--text-primary); }
+    .sidebar { width: 260px; min-height: 100vh; background: var(--sidebar-bg); color: #fff; position: fixed; top: 0; left: 0; z-index: 1000; transition: transform 0.3s; overflow-y: auto; border-right: 1px solid var(--card-border); }
+    .sidebar-brand { padding: 1rem 1.25rem; font-size: 1.25rem; font-weight: 700; border-bottom: 1px solid var(--card-border); }
     .sidebar-nav { list-style: none; padding: 0; margin: 0; }
-    .sidebar-nav li a { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 1.25rem; color: rgba(255,255,255,0.8); text-decoration: none; transition: all 0.2s; font-size: 0.9rem; }
-    .sidebar-nav li a:hover, .sidebar-nav li a.active { background: rgba(255,255,255,0.1); color: #fff; }
+    .sidebar-nav li a { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 1.25rem; color: var(--text-secondary); text-decoration: none; transition: all 0.2s; font-size: 0.9rem; }
+    .sidebar-nav li a:hover, .sidebar-nav li a.active { background: var(--sidebar-hover); color: #fff; }
+    .sidebar-nav li a.active { background: var(--sidebar-active); border-left: 3px solid var(--accent); }
     .sidebar-nav li a i { width: 20px; text-align: center; }
-    .sidebar-section { padding: 0.5rem 1.25rem 0.25rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,0.4); }
-    .sidebar-accordion .accordion-button { background: transparent; color: rgba(255,255,255,0.8); border: none; padding: 0.65rem 1.25rem; font-size: 0.9rem; box-shadow: none; }
-    .sidebar-accordion .accordion-button:not(.collapsed) { color: #fff; background: rgba(255,255,255,0.05); }
+    .sidebar-section { padding: 0.5rem 1.25rem 0.25rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); opacity: 0.6; }
+    .sidebar-accordion .accordion-button { background: transparent; color: var(--text-secondary); border: none; padding: 0.65rem 1.25rem; font-size: 0.9rem; box-shadow: none; }
+    .sidebar-accordion .accordion-button:not(.collapsed) { color: #fff; background: var(--sidebar-hover); }
     .sidebar-accordion .accordion-button::after { filter: invert(1); opacity: 0.5; }
     .sidebar-accordion .accordion-body { padding: 0 0 0.25rem; }
-    .sidebar-accordion .accordion-body a { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 1.25rem 0.5rem 2.5rem; color: rgba(255,255,255,0.7); text-decoration: none; transition: all 0.2s; font-size: 0.85rem; }
-    .sidebar-accordion .accordion-body a:hover, .sidebar-accordion .accordion-body a.active { color: #fff; background: rgba(255,255,255,0.05); }
+    .sidebar-accordion .accordion-body a { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 1.25rem 0.5rem 2.5rem; color: var(--text-secondary); text-decoration: none; transition: all 0.2s; font-size: 0.85rem; }
+    .sidebar-accordion .accordion-body a:hover, .sidebar-accordion .accordion-body a.active { color: #fff; background: var(--sidebar-hover); }
     .main-content { margin-left: 260px; padding-top: 60px; min-height: 100vh; }
-    .topbar { height: 60px; background: #fff; border-bottom: 1px solid #dee2e6; display: flex; align-items: center; padding: 0 1.5rem; position: fixed; top: 0; right: 0; left: 260px; z-index: 999; }
-    .stat-card { border: none; border-radius: 0.75rem; transition: transform 0.2s; }
-    .stat-card:hover { transform: translateY(-2px); }
+    .topbar { height: 60px; background: var(--topbar-bg); border-bottom: 1px solid var(--card-border); display: flex; align-items: center; padding: 0 1.5rem; position: fixed; top: 0; right: 0; left: 260px; z-index: 999; }
+    .stat-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 0.75rem; transition: transform 0.2s; }
+    .stat-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 0.75rem; }
+    .card-header { background: transparent; border-bottom: 1px solid var(--card-border); }
+    .table { color: var(--text-primary); }
+    .table-light, .table > thead { --bs-table-bg: #161b22; --bs-table-color: var(--text-primary); }
+    .form-control, .form-select { background: #0d1117; border-color: var(--card-border); color: var(--text-primary); }
+    .form-control:focus, .form-select:focus { background: #0d1117; border-color: var(--accent); color: #fff; box-shadow: 0 0 0 0.2rem rgba(46,160,67,0.25); }
+    .form-check-input:checked { background-color: var(--accent); border-color: var(--accent); }
+    .btn-outline-success { border-color: var(--accent); color: var(--accent); }
+    .btn-outline-success:hover { background: var(--accent); color: #fff; }
+    .bg-light { background-color: #161b22 !important; }
+    .text-muted { color: var(--text-secondary) !important; }
+    .dropdown-menu { background: var(--card-bg); border: 1px solid var(--card-border); }
+    .dropdown-item { color: var(--text-primary); }
+    .dropdown-item:hover { background: var(--sidebar-hover); color: #fff; }
+    .modal-content { background: var(--card-bg); border: 1px solid var(--card-border); }
+    .modal-header { border-bottom-color: var(--card-border); }
+    .modal-footer { border-top-color: var(--card-border); }
+    .badge.bg-light { background: #21262d !important; color: var(--text-primary); }
+    .list-group-item { background: var(--card-bg); border-color: var(--card-border); color: var(--text-primary); }
+    .accordion-item { background: transparent; border-color: transparent; }
+    .spinner-border { border-color: var(--accent); border-right-color: transparent; }
+    .bg-white { background-color: var(--card-bg) !important; }
+    pre { background: #0d1117 !important; border: 1px solid var(--card-border); }
     @media (max-width: 991.98px) { .sidebar { transform: translateX(-100%); } .sidebar.show { transform: translateX(0); } .main-content { margin-left: 0; } .topbar { left: 0; } }
   </style>
 </head>
@@ -101,9 +138,9 @@ const { title, activePage = '' } = Astro.props;
     <div class="d-flex align-items-center justify-content-between w-100">
       <h6 class="mb-0 d-none d-md-block">{title}</h6>
       <div class="d-flex align-items-center gap-3">
-        <span class="text-muted small">एडमिन</span>
+        <span class="small" style="color:var(--text-secondary)">एडमिन</span>
         <div class="dropdown">
-          <button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown">Admin</button>
+          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">Admin</button>
           <ul class="dropdown-menu dropdown-menu-end">
             <li><a class="dropdown-item" href="/settings">सेटिङ</a></li>
             <li><hr class="dropdown-divider" /></li>

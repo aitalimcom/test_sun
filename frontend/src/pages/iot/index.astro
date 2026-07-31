@@ -454,9 +454,12 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   </script>
 
   <style>
+    :root { --accent: #2ea043; --bg-card: #161b22; --border: #21262d; --text-dim: #8b949e; }
     .chat-messages .badge { white-space: normal; text-align: left; }
-    .stat-card { border: none; border-radius: 0.75rem; }
+    .stat-card { border-radius: 0.75rem; }
     .stat-card:hover { transform: translateY(-2px); transition: transform 0.2s; }
     .card { border-radius: 0.75rem; }
+    .progress { background: #21262d; }
+    .progress-bar { transition: width 0.6s ease; }
   </style>
 </AdminLayout>
